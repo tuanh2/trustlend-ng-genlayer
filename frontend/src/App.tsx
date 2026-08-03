@@ -8,20 +8,13 @@ import { AlertTriangle, Loader2, ShieldCheck, CheckCircle2 } from 'lucide-react'
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'market' | 'merchant' | 'dispute'>('market');
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return (localStorage.getItem('trustlend_theme') as 'dark' | 'light') || 'dark';
-  });
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
-    localStorage.setItem('trustlend_theme', theme);
-    if (theme === 'light') {
-      document.documentElement.classList.add('light');
-      document.body.classList.add('light');
-    } else {
-      document.documentElement.classList.remove('light');
-      document.body.classList.remove('light');
-    }
-  }, [theme]);
+    localStorage.setItem('trustlend_theme', 'dark');
+    document.documentElement.classList.remove('light');
+    document.body.classList.remove('light');
+  }, []);
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
@@ -41,7 +34,7 @@ export function App() {
   } = useGenLayer();
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-250 ${theme === 'light' ? 'bg-[#F8FAFC] text-slate-800' : 'bg-[#090A0D] text-slate-100'}`}>
+    <div className="min-h-screen flex flex-col font-sans transition-colors duration-250 bg-[#090A0D] text-slate-100">
       {/* Navbar */}
       <Navbar
         address={address}
@@ -58,10 +51,10 @@ export function App() {
 
       {/* Contract Warning Banner */}
       {!contractAddress && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 text-center text-xs text-amber-500 flex items-center justify-center gap-2 font-mono-data">
-          <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 text-center text-xs text-amber-400 flex items-center justify-center gap-2 font-mono-data">
+          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
           <span>
-            <strong>Waiting for contract deployment:</strong> Please deploy <code className="bg-black/10 px-1.5 py-0.5 rounded text-amber-600">contracts/trustlend.py</code> to GenLayer Studio (studionet) and add <code className="bg-black/10 px-1.5 py-0.5 rounded text-amber-600">VITE_CONTRACT_ADDRESS</code> to your frontend <code className="bg-black/10 px-1.5 py-0.5 rounded text-amber-600">.env</code> file.
+            <strong>Waiting for contract deployment:</strong> Please deploy <code className="bg-black/40 px-1.5 py-0.5 rounded text-amber-200">contracts/trustlend.py</code> to GenLayer Studio (studionet) and add <code className="bg-black/40 px-1.5 py-0.5 rounded text-amber-200">VITE_CONTRACT_ADDRESS</code> to your frontend <code className="bg-black/40 px-1.5 py-0.5 rounded text-amber-200">.env</code> file.
           </span>
         </div>
       )}
@@ -116,7 +109,7 @@ export function App() {
       {/* Footer */}
       <footer className="border-t border-slate-500/15 py-6 px-4 text-center text-xs text-slate-500 space-y-2 font-mono-data">
         <div className="flex items-center justify-center gap-4 text-slate-400">
-          <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> GenLayer Intelligent Escrow</span>
+          <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> GenLayer Intelligent Escrow</span>
           <span>•</span>
           <span>studionet</span>
           <span>•</span>
