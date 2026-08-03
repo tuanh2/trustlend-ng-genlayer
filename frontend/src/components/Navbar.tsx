@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wallet, RefreshCw, ShoppingCart, Bot, Gavel, Zap, Sun, Moon } from 'lucide-react';
+import { Wallet, RefreshCw, ShoppingCart, ShieldCheck, Zap, Sun, Moon, ArrowRightLeft } from 'lucide-react';
 
 interface NavbarProps {
   address: string;
@@ -35,9 +35,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         ? 'bg-white/95 border-slate-200 shadow-sm'
         : 'bg-[#090A0D]/95 border-[#F5C842]/16 shadow-2xl'
     }`}>
-      {/* Impeccable Brand Lockup */}
+      {/* Brand Lockup */}
       <div className="flex items-center gap-3.5">
-        {/* Carved Tile Mark Glyph [ / ] */}
         <div className="w-8 h-8 rounded-sm bg-[#D97706] text-white flex items-center justify-center font-mono-data font-black text-sm border border-amber-300">
           /
         </div>
@@ -47,12 +46,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               TRUSTLEND <span className="text-[#D97706]">P2P ESCROW</span>
             </h1>
             <span className="ks-badge-patina px-2 py-0.5 text-[10px] font-mono-data font-medium rounded-xs flex items-center gap-1 uppercase tracking-wider">
-              <Zap className="w-3 h-3 text-[#0D9488]" /> AI Auto-Release
+              <Zap className="w-3 h-3 text-[#0D9488]" /> Automated Verification
             </span>
           </div>
           <p className="text-[11px] text-slate-500 font-mono-data flex items-center gap-2">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#0D9488]"></span>
-            GenLayer studionet • 10% Security Bond Protected
+            GenLayer studionet • 10% Security Bond Protection
           </p>
         </div>
       </div>
@@ -81,8 +80,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               : 'text-slate-500 hover:text-slate-900'
           }`}
         >
-          <Bot className="w-3.5 h-3.5" />
-          Merchant AI Bot
+          <ArrowRightLeft className="w-3.5 h-3.5" />
+          Merchant Escrow Hub
         </button>
 
         <button
@@ -93,14 +92,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               : 'text-slate-500 hover:text-slate-900'
           }`}
         >
-          <Gavel className="w-3.5 h-3.5 text-amber-500" />
-          AI Anti-Fraud Audit
+          <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+          Anti-Fraud Audit Log
         </button>
       </nav>
 
       {/* Wallet & Theme Controls */}
       <div className="flex items-center gap-2.5">
-        {/* Light Mode / Dark Mode Theme Switcher Toggle */}
         <button
           onClick={onToggleTheme}
           className={`px-3 py-1.5 rounded-xs text-xs font-mono-data font-bold flex items-center gap-1.5 transition-all border ${
@@ -112,11 +110,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           {theme === 'light' ? (
             <>
-              <Sun className="w-3.5 h-3.5 text-amber-500" /> Nền Trắng (Light)
+              <Sun className="w-3.5 h-3.5 text-amber-500" /> Light Mode
             </>
           ) : (
             <>
-              <Moon className="w-3.5 h-3.5 text-[#F5C842]" /> Nền Tối (Dark)
+              <Moon className="w-3.5 h-3.5 text-[#F5C842]" /> Dark Mode
             </>
           )}
         </button>

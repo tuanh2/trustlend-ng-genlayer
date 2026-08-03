@@ -4,7 +4,7 @@ import { Navbar } from './components/Navbar';
 import { BorrowerDashboard as P2PMarket } from './components/BorrowerDashboard';
 import { LenderDashboard as MerchantHub } from './components/LenderDashboard';
 import { DisputePanel as DisputeCenter } from './components/DisputePanel';
-import { AlertTriangle, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Loader2, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'market' | 'merchant' | 'dispute'>('market');
@@ -74,14 +74,14 @@ export function App() {
               <Loader2 className="w-8 h-8 animate-spin" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-white">AI Consensus in Progress</h3>
+              <h3 className="text-xl font-bold text-white">Escrow Consensus in Progress</h3>
               <p className="text-xs text-slate-300 mt-1">{txMessage}</p>
             </div>
             <div className="p-3 bg-slate-950 rounded-xl text-left border border-white/5 text-[11px] text-slate-400 space-y-1 font-mono-data">
               <p className="flex items-center gap-1 font-semibold text-emerald-400">
-                <Sparkles className="w-3 h-3" /> Optimistic Democracy Consensus
+                <CheckCircle2 className="w-3 h-3" /> Optimistic Democracy Consensus
               </p>
-              <p>Multiple LLM validator nodes are inspecting the bank receipt and comparing subjective verdicts on GenLayer studionet.</p>
+              <p>Multiple validator nodes are inspecting the bank payment receipt and comparing verdicts on GenLayer studionet.</p>
             </div>
           </div>
         </div>
@@ -116,13 +116,13 @@ export function App() {
       {/* Footer */}
       <footer className="border-t border-slate-500/15 py-6 px-4 text-center text-xs text-slate-500 space-y-2 font-mono-data">
         <div className="flex items-center justify-center gap-4 text-slate-400">
-          <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Powered by GenLayer AI</span>
+          <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> GenLayer Intelligent Escrow</span>
           <span>•</span>
           <span>studionet</span>
           <span>•</span>
           <span>10% Security Deposit Protection</span>
         </div>
-        <p>© 2026 TrustLend P2P Escrow. AI-Automated Fiat-to-Crypto Escrow Exchange.</p>
+        <p>© 2026 TrustLend P2P Escrow. Automated Fiat-to-Crypto Escrow Exchange.</p>
       </footer>
     </div>
   );

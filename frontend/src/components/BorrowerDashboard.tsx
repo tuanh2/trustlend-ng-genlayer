@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ShoppingCart, ShieldCheck, AlertOctagon, CheckCircle2, Copy, Sparkles, ArrowRight, Zap, Cpu, Play, Check, AlertTriangle, RefreshCw, Upload, Image as ImageIcon, Key, Volume2 } from 'lucide-react';
+import { ShoppingCart, ShieldCheck, AlertOctagon, CheckCircle2, Copy, ArrowRight, Zap, Play, Check, AlertTriangle, RefreshCw, Upload, Image as ImageIcon, Key, Volume2, FileCheck } from 'lucide-react';
 import type { P2POrder } from '../types';
 import { playSuccessChime, playSlashAlert } from '../utils/audio';
 
@@ -41,11 +41,11 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
       holderName: 'TRIN THI NGAN',
       amount: '2,500,000 VND',
       memo: 'TLENG-88F3A',
-      desc: 'Official Vietcombank receipt link matching account, amount & memo TLENG-88F3A.',
-      badge: '99.8% AI Match',
+      desc: 'Official Vietcombank receipt matching account number, amount & reference memo TLENG-88F3A.',
+      badge: '99.8% Match Score',
       badgeClass: 'ks-badge-patina',
       verdict: 'MATCHED',
-      reason: 'Verified official Vietcombank E-Receipt link. Transferred 2,500,000 VND to account 9988776655 with matching memo TLENG-88F3A.',
+      reason: 'Verified Vietcombank E-Receipt link. Transferred 2,500,000 VND to account 9988776655 with matching reference TLENG-88F3A.',
     },
     {
       id: 1,
@@ -60,22 +60,22 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
       badge: '100% Verified',
       badgeClass: 'ks-badge-patina',
       verdict: 'MATCHED',
-      reason: 'Verified POS digital slip content matching merchant bank account and required memo code TLENG-88F3A.',
+      reason: 'Verified POS digital slip content matching merchant bank account and required reference code TLENG-88F3A.',
     },
     {
       id: 2,
-      label: '⚠️ Tampered / Photoshopped Receipt (Triggers 10% Slash)',
+      label: '⚠️ Tampered / Invalid Receipt (Triggers 10% Slash)',
       url: 'https://fake-receipts.com/tampered-slip.png',
-      bankName: 'Unknown / Fake',
+      bankName: 'Unknown / Invalid',
       accountNumber: '1122334455',
-      holderName: 'FAKE ACCOUNT',
+      holderName: 'INVALID ACCOUNT',
       amount: '500,000 VND',
       memo: 'WRONG-MEMO',
-      desc: 'Invalid or photoshopped receipt URL. GenLayer AI flags FRAUD and slashes deposit.',
+      desc: 'Invalid or tampered receipt URL. Consensus flags fraud and slashes 10% buyer deposit.',
       badge: 'FRAUD - Slashed',
       badgeClass: 'ks-badge-vermilion',
       verdict: 'FRAUD',
-      reason: 'AI detected mismatched bank account number and invalid transfer memo code. Flagged as fraudulent proof. Slashed 10% Security Deposit.',
+      reason: 'Mismatched bank account number and invalid transfer memo code. Flagged as invalid proof. Slashed 10% security deposit.',
     },
   ];
 
@@ -195,7 +195,7 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
     fetchOrders();
   };
 
-  // Submit Bank Payment Proof for AI Release
+  // Submit Bank Payment Proof for Release
   const handleSubmitProof = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder || !proofUrl) return;
@@ -208,7 +208,7 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
       'submit_payment_proof',
       [selectedOrder.order_id, finalProof],
       undefined,
-      `GenLayer AI Consensus verifying bank proof & releasing escrow...`
+      `Verifying bank proof & executing escrow settlement...`
     );
 
     if (res) {
@@ -241,35 +241,35 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
         </div>
       )}
 
-      {/* Live AI Auto-Release Ticker Banner */}
+      {/* Live Auto-Release Ticker Banner */}
       <div className="ks-panel-deep p-2 rounded-xs border border-[#14B8A6]/25 overflow-hidden relative">
         <div className="flex items-center gap-3">
           <span className="px-2.5 py-0.5 rounded-xs bg-[#14B8A6] text-[#090A0D] text-[10px] font-mono-data font-bold uppercase tracking-wider shrink-0 flex items-center gap-1">
-            <Zap className="w-3 h-3 fill-[#090A0D]" /> LIVE TICKER
+            <Zap className="w-3 h-3 fill-[#090A0D]" /> LIVE SETTLEMENTS
           </span>
           <div className="overflow-hidden w-full relative">
             <div className="animate-ticker text-xs font-mono-data text-[#E5E7EB] gap-8">
-              <span>⚡ Order #1: Auto-released 100 GEN to 0x7a... via Vietcombank (AI Match 99.8%)</span>
-              <span>⚡ Order #2: Auto-released 250 GEN to 0x3b... via Moniepoint POS (AI Match 100%)</span>
-              <span>⚠️ Order #3: Slashed 10% Security Deposit from 0x9c... (AI Flagged Tampered Receipt)</span>
-              <span>⚡ Order #4: Auto-released 500 GEN to 0x1f... via Kuda Bank (AI Match 99.5%)</span>
+              <span>⚡ Order #1: Verified & Released 100 GEN via Vietcombank (Match 99.8%)</span>
+              <span>⚡ Order #2: Verified & Released 250 GEN via Moniepoint POS (Match 100%)</span>
+              <span>⚠️ Order #3: Slashed 10% Security Deposit from 0x9c... (Invalid Payment Receipt)</span>
+              <span>⚡ Order #4: Verified & Released 500 GEN via Kuda Bank (Match 99.5%)</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Interactive 4-Step AI Verification Demo Panel (Impeccable style) */}
+      {/* Interactive 4-Step Verification Demo Panel */}
       <div className="ks-panel p-6 md:p-8 rounded-sm space-y-6 relative overflow-hidden">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-[#F5C842]/16 pb-6">
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xs bg-[#F5C842]/10 text-[#F5C842] text-xs font-mono-data font-medium border border-[#F5C842]/25">
-              <Cpu className="w-4 h-4 text-[#F5C842]" /> GenLayer AI Bank Verification & Audio Chime
+              <FileCheck className="w-4 h-4 text-[#F5C842]" /> Automated Bank Payment Verification
             </div>
             <h1 className="text-3xl md:text-4xl text-white font-light tracking-tight">
-              Interactive Proof Verification Demo
+              Interactive Receipt Verification Demo
             </h1>
             <p className="text-xs text-[#9CA3AF] leading-relaxed">
-              Experience the full flow: Upload any receipt image, sign zero-cost MetaMask verification (0 tokens/gas), and hear the instant <strong className="text-[#F5C842]">"Ting-Ting"</strong> success audio chime when escrow releases!
+              Experience the verification flow: Upload any bank payment receipt screenshot, confirm with zero-cost MetaMask signing (0 tokens/gas), and hear the instant <strong className="text-[#F5C842]">"Ting-Ting"</strong> settlement chime when escrow releases!
             </p>
           </div>
 
@@ -277,7 +277,7 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
             <button
               onClick={() => playSuccessChime()}
               className="px-3 py-2 rounded-xs bg-[#16181D] border border-white/10 text-[#E5E7EB] hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
-              title="Test Audio Chime"
+              title="Test Settlement Sound"
             >
               <Volume2 className="w-4 h-4 text-[#F5C842]" /> Test Sound
             </button>
@@ -289,11 +289,11 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
             >
               {isDemoRunning ? (
                 <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" /> AI Consensus Running...
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Verifying Payment...
                 </>
               ) : (
                 <>
-                  <Play className="w-3.5 h-3.5 fill-[#090A0D]" /> Start AI Verification Demo
+                  <Play className="w-3.5 h-3.5 fill-[#090A0D]" /> Start Verification Demo
                 </>
               )}
             </button>
@@ -303,7 +303,7 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
         {/* Demo Preset Selector */}
         <div className="space-y-3">
           <div className="text-xs font-medium text-[#9CA3AF] font-mono-data flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-[#F5C842]" /> Select Scenario Preset:
+            Select Test Scenario Preset:
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {sampleProofs.map(sample => (
@@ -343,7 +343,7 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
           {/* Step 2 */}
           <div className={`p-4 rounded-xs border transition-all ${demoStep >= 2 ? 'border-[#14B8A6] bg-[#14B8A6]/10 text-white' : 'border-white/10 bg-[#040507] text-[#6B7280]'}`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase tracking-wider">Step 2: AI Web Render</span>
+              <span className="text-[10px] uppercase tracking-wider">Step 2: Bank Web Render</span>
               {demoStep >= 2 && <Check className="w-3.5 h-3.5 text-[#14B8A6]" />}
             </div>
             <div className="text-xs font-bold text-white">gl.nondet.web.render</div>
@@ -353,7 +353,7 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
           {/* Step 3 */}
           <div className={`p-4 rounded-xs border transition-all ${demoStep >= 3 ? 'border-amber-400 bg-amber-400/10 text-white' : 'border-white/10 bg-[#040507] text-[#6B7280]'}`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase tracking-wider">Step 3: AI Consensus</span>
+              <span className="text-[10px] uppercase tracking-wider">Step 3: Consensus Check</span>
               {demoStep >= 3 && <Check className="w-3.5 h-3.5 text-amber-400" />}
             </div>
             <div className="text-xs font-bold text-white">Optimistic Democracy</div>
@@ -367,7 +367,7 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
               {demoStep >= 4 && (currentDemo.verdict === 'MATCHED' ? <CheckCircle2 className="w-3.5 h-3.5 text-[#14B8A6]" /> : <AlertTriangle className="w-3.5 h-3.5 text-[#EF4444]" />)}
             </div>
             <div className="text-xs font-bold text-white">
-              {demoStep >= 4 ? (currentDemo.verdict === 'MATCHED' ? '🔔 Auto-Released 100%' : '⚠️ 10% Bond Slashed!') : 'Awaiting Execution'}
+              {demoStep >= 4 ? (currentDemo.verdict === 'MATCHED' ? '🔔 Released 100%' : '⚠️ 10% Bond Slashed!') : 'Awaiting Execution'}
             </div>
             <p className="text-[11px] text-[#9CA3AF] mt-1">{currentDemo.reason}</p>
           </div>
@@ -390,7 +390,7 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
             <AlertOctagon className="w-10 h-10 text-[#F5C842] mx-auto" />
             <h3 className="text-lg font-bold text-white">No Active P2P Escrow Listings</h3>
             <p className="text-xs text-[#9CA3AF] max-w-md mx-auto">
-              No active sell orders on studionet. Switch to the <strong>Merchant AI Bot</strong> tab to connect CEX APIs and process real-time P2P trades!
+              No active sell orders on studionet. Switch to the <strong>Merchant Escrow Hub</strong> tab to connect CEX APIs and process real-time P2P trades!
             </p>
           </div>
         ) : (
@@ -442,7 +442,7 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
                         <span className="text-white font-bold">{order.bank_name}</span>
                       </div>
                       <div className="flex justify-between items-center text-[#9CA3AF] text-[11px]">
-                        <span>Required Memo Code:</span>
+                        <span>Required Reference Memo:</span>
                         <span className="text-[#14B8A6] font-bold">{order.ref_code}</span>
                       </div>
                     </div>
@@ -469,7 +469,7 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
                           onClick={() => setSelectedOrder(order)}
                           className="ks-button-patina w-full py-2.5 text-xs flex items-center justify-center gap-2"
                         >
-                          Upload Receipt Image for AI Release
+                          Upload Receipt Image for Settlement
                         </button>
                       )}
                   </div>
@@ -486,7 +486,7 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
           <div className="ks-panel p-6 md:p-8 rounded-sm border border-[#F5C842]/30 max-w-xl w-full space-y-5 relative max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
-                <h3 className="text-xl font-bold text-white">Bank Payment & AI Release</h3>
+                <h3 className="text-xl font-bold text-white">Bank Payment & Settlement</h3>
                 <p className="text-xs text-[#9CA3AF] font-mono-data">Order #{selectedOrder.order_id} • Escrowed: {selectedOrder.crypto_amount} GEN</p>
               </div>
               <button
@@ -602,7 +602,7 @@ export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
                 type="submit"
                 className="ks-button-primary w-full py-3 text-xs flex items-center justify-center gap-2"
               >
-                <CheckCircle2 className="w-4 h-4" /> Sign Wallet (0 Gas) & Auto-Release Escrow
+                <CheckCircle2 className="w-4 h-4" /> Sign Wallet (0 Gas) & Submit Settlement Proof
               </button>
             </form>
           </div>

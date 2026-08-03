@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, DollarSign, Bot, Zap, CheckCircle2, AlertTriangle, Cpu, Play, Key, RefreshCw } from 'lucide-react';
+import { ShieldCheck, DollarSign, Zap, CheckCircle2, AlertTriangle, Play, Key, RefreshCw, ArrowRightLeft, FileCheck } from 'lucide-react';
 import type { CEXConnection, CEXOrder } from '../types';
 import { playSuccessChime } from '../utils/audio';
 
@@ -34,7 +34,7 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
       status: 'COMPLETED_AUTO',
       aiScore: 99.8,
       timestamp: '19:14:02',
-      aiReason: 'AI matched Vietcombank transfer 2,540,000 VND to account 9988776655 with memo TLENG-88F3A. Auto-released on Binance API.',
+      aiReason: 'Verified Vietcombank transfer 2,540,000 VND to account 9988776655 with memo TLENG-88F3A. Released on Binance API.',
     },
     {
       id: 'CEX-OKX-8842',
@@ -50,7 +50,7 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
       status: 'COMPLETED_AUTO',
       aiScore: 100,
       timestamp: '19:10:45',
-      aiReason: 'AI matched Techcombank digital receipt. 6,350,000 VND received. Auto-released 250 USDT.',
+      aiReason: 'Verified Techcombank digital receipt. 6,350,000 VND received. Released 250 USDT.',
     },
     {
       id: 'CEX-BYBIT-3310',
@@ -66,7 +66,7 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
       status: 'NEEDS_REVIEW',
       aiScore: 45.2,
       timestamp: '18:58:12',
-      aiReason: '⚠️ AI Alert: Mismatched account holder name on payment proof slip. Flagged for manual merchant verification.',
+      aiReason: '⚠️ Mismatched account holder name on payment proof slip. Flagged for manual merchant verification.',
     },
     {
       id: 'CEX-BN-9890',
@@ -82,7 +82,7 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
       status: 'COMPLETED_AUTO',
       aiScore: 99.5,
       timestamp: '18:45:30',
-      aiReason: 'AI matched Vietcombank receipt 7,620,000 VND. Auto-released 300 USDT on Binance API.',
+      aiReason: 'Verified Vietcombank receipt 7,620,000 VND. Released 300 USDT on Binance API.',
     },
   ]);
 
@@ -110,7 +110,7 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
         status: 'COMPLETED_AUTO',
         aiScore: 99.9,
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        aiReason: `AI scanned Vietcombank E-Receipt. 2,540,000 VND received for memo ${newRef}. Auto-released 100 USDT on Binance P2P API.`,
+        aiReason: `Scanned Vietcombank E-Receipt. 2,540,000 VND received for memo ${newRef}. Released 100 USDT on Binance P2P API.`,
       };
 
       setCexOrders(prev => [newOrd, ...prev]);
@@ -137,18 +137,18 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Merchant AI Auto-Bot Header Banner */}
+      {/* Merchant Header Banner */}
       <div className="ks-panel p-6 md:p-8 rounded-sm space-y-6 relative overflow-hidden">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xs bg-[#F5C842]/10 text-[#F5C842] text-xs font-mono-data font-medium border border-[#F5C842]/25">
-              <Bot className="w-4 h-4 text-[#F5C842]" /> Merchant AI Auto-Release Bot Hub
+              <ArrowRightLeft className="w-4 h-4 text-[#F5C842]" /> Merchant P2P Escrow Hub
             </div>
             <h1 className="text-3xl md:text-4xl text-white font-light tracking-tight">
-              CEX Multi-Exchange P2P Auto-Seller Bot
+              Multi-Exchange P2P Escrow Automation
             </h1>
             <p className="text-xs text-[#9CA3AF] leading-relaxed">
-              Connect your Binance, OKX, Bybit & MEXC P2P API keys. GenLayer AI automatically verifies buyer bank payments in real-time and releases USDT/Crypto <strong>without any seller manual effort!</strong>
+              Connect your Binance, OKX, Bybit & MEXC P2P API keys. GenLayer Intelligent Contracts automatically verify buyer bank payments in real-time and release USDT/Crypto <strong>without manual merchant delays!</strong>
             </p>
           </div>
 
@@ -219,7 +219,7 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-[#9CA3AF] font-medium">AI Auto-Released Today</div>
+            <div className="text-xs text-[#9CA3AF] font-medium">Auto-Settled Today</div>
             <div className="text-2xl font-bold text-[#14B8A6] font-mono-data">
               {autoCompletedCount} Trades
             </div>
@@ -303,18 +303,18 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
                 </div>
 
                 <div className="text-xs text-[#E5E7EB]">
-                  Buyer: <span className="font-bold text-white">{ord.buyerName}</span> • Bank: <span className="font-bold text-white">{ord.bankName}</span> ({ord.accountNumber}) • Memo: <span className="text-amber-400 font-bold">{ord.refCode}</span>
+                  Buyer: <span className="font-bold text-white">{ord.buyerName}</span> • Bank: <span className="font-bold text-white">{ord.bankName}</span> ({ord.accountNumber}) • Reference: <span className="text-amber-400 font-bold">{ord.refCode}</span>
                 </div>
 
                 <div className="text-[11px] text-[#9CA3AF] bg-[#040507] p-2.5 rounded-xs border border-white/5 flex items-center gap-2">
-                  <Cpu className="w-3.5 h-3.5 text-[#F5C842] shrink-0" />
+                  <FileCheck className="w-3.5 h-3.5 text-[#F5C842] shrink-0" />
                   <span>{ord.aiReason}</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0">
                 <div className="text-right">
-                  <div className="text-[10px] text-[#9CA3AF]">AI Confidence</div>
+                  <div className="text-[10px] text-[#9CA3AF]">Verification Score</div>
                   <div className={`text-sm font-bold ${ord.aiScore > 90 ? 'text-[#14B8A6]' : 'text-amber-400'}`}>
                     {ord.aiScore}% Match
                   </div>
