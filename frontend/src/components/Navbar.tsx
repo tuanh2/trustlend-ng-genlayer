@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wallet, RefreshCw, ShoppingCart, Bot, Gavel, Zap } from 'lucide-react';
+import { Wallet, RefreshCw, ShoppingCart, Bot, Gavel, Zap, Sun, Moon } from 'lucide-react';
 
 interface NavbarProps {
   address: string;
@@ -10,6 +10,8 @@ interface NavbarProps {
   activeTab: 'market' | 'merchant' | 'dispute';
   setActiveTab: (tab: 'market' | 'merchant' | 'dispute') => void;
   onConnect: () => void;
+  theme?: 'dark' | 'light';
+  onToggleTheme?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -21,42 +23,50 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
   onConnect,
+  theme = 'dark',
+  onToggleTheme,
 }) => {
   const formatAddr = (addr: string) =>
     addr ? `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}` : '';
 
   return (
-    <header className="sticky top-0 z-40 bg-[#090A0D]/95 border-b border-[#F5C842]/16 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
-      {/* Impeccable Brand Lockup (impeccable.style/docs) */}
+    <header className={`sticky top-0 z-40 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4 transition-colors duration-250 border-b ${
+      theme === 'light'
+        ? 'bg-white/95 border-slate-200 shadow-sm'
+        : 'bg-[#090A0D]/95 border-[#F5C842]/16 shadow-2xl'
+    }`}>
+      {/* Impeccable Brand Lockup */}
       <div className="flex items-center gap-3.5">
         {/* Carved Tile Mark Glyph [ / ] */}
-        <div className="w-8 h-8 rounded-sm bg-[#F5C842] flex items-center justify-center font-mono-data text-[#090A0D] font-black text-sm border border-[#FDE68A]">
+        <div className="w-8 h-8 rounded-sm bg-[#D97706] text-white flex items-center justify-center font-mono-data font-black text-sm border border-amber-300">
           /
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-wordmark text-white tracking-widest font-normal">
-              TRUSTLEND <span className="text-[#F5C842]">P2P ESCROW</span>
+            <h1 className={`text-xl font-wordmark tracking-widest font-normal ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+              TRUSTLEND <span className="text-[#D97706]">P2P ESCROW</span>
             </h1>
             <span className="ks-badge-patina px-2 py-0.5 text-[10px] font-mono-data font-medium rounded-xs flex items-center gap-1 uppercase tracking-wider">
-              <Zap className="w-3 h-3 text-[#14B8A6]" /> AI Auto-Release
+              <Zap className="w-3 h-3 text-[#0D9488]" /> AI Auto-Release
             </span>
           </div>
-          <p className="text-[11px] text-[#9CA3AF] font-mono-data flex items-center gap-2">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#14B8A6]"></span>
+          <p className="text-[11px] text-slate-500 font-mono-data flex items-center gap-2">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#0D9488]"></span>
             GenLayer studionet • 10% Security Bond Protected
           </p>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <nav className="flex items-center gap-1 bg-[#040507] p-1 rounded-sm border border-[#F5C842]/16">
+      <nav className={`flex items-center gap-1 p-1 rounded-sm border ${
+        theme === 'light' ? 'bg-slate-100 border-slate-200' : 'bg-[#040507] border-[#F5C842]/16'
+      }`}>
         <button
           onClick={() => setActiveTab('market')}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xs text-xs font-medium transition-colors ${
             activeTab === 'market'
-              ? 'bg-[#F5C842] text-[#090A0D] font-bold'
-              : 'text-[#9CA3AF] hover:text-white'
+              ? 'bg-[#D97706] text-white font-bold'
+              : 'text-slate-500 hover:text-slate-900'
           }`}
         >
           <ShoppingCart className="w-3.5 h-3.5" />
@@ -67,8 +77,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => setActiveTab('merchant')}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xs text-xs font-medium transition-colors ${
             activeTab === 'merchant'
-              ? 'bg-[#14B8A6] text-[#090A0D] font-bold'
-              : 'text-[#9CA3AF] hover:text-white'
+              ? 'bg-[#0D9488] text-white font-bold'
+              : 'text-slate-500 hover:text-slate-900'
           }`}
         >
           <Bot className="w-3.5 h-3.5" />
@@ -79,32 +89,53 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => setActiveTab('dispute')}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xs text-xs font-medium transition-colors ${
             activeTab === 'dispute'
-              ? 'bg-[#16181D] text-white border border-[#F5C842]/30 font-bold'
-              : 'text-[#9CA3AF] hover:text-white'
+              ? 'bg-slate-700 text-white font-bold'
+              : 'text-slate-500 hover:text-slate-900'
           }`}
         >
-          <Gavel className="w-3.5 h-3.5 text-[#F5C842]" />
+          <Gavel className="w-3.5 h-3.5 text-amber-500" />
           AI Anti-Fraud Audit
         </button>
       </nav>
 
-      {/* Wallet Controls */}
-      <div className="flex items-center gap-3">
+      {/* Wallet & Theme Controls */}
+      <div className="flex items-center gap-2.5">
+        {/* Light Mode / Dark Mode Theme Switcher Toggle */}
+        <button
+          onClick={onToggleTheme}
+          className={`px-3 py-1.5 rounded-xs text-xs font-mono-data font-bold flex items-center gap-1.5 transition-all border ${
+            theme === 'light'
+              ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+              : 'bg-[#101216] hover:bg-[#16181D] border-[#F5C842]/20 text-[#F5C842]'
+          }`}
+          title="Toggle Light / Dark Mode"
+        >
+          {theme === 'light' ? (
+            <>
+              <Sun className="w-3.5 h-3.5 text-amber-500" /> Nền Trắng (Light)
+            </>
+          ) : (
+            <>
+              <Moon className="w-3.5 h-3.5 text-[#F5C842]" /> Nền Tối (Dark)
+            </>
+          )}
+        </button>
+
         {contractAddress && (
-          <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-xs bg-[#040507] border border-[#F5C842]/16 text-xs font-mono-data text-[#9CA3AF]">
-            <span className="text-[#6B7280]">CA:</span>
-            <span className="text-[#F5C842] font-medium">{formatAddr(contractAddress)}</span>
+          <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-xs bg-slate-100 dark:bg-[#040507] border border-slate-300 dark:border-[#F5C842]/16 text-xs font-mono-data text-slate-500">
+            <span className="text-slate-400">CA:</span>
+            <span className="text-[#D97706] font-medium">{formatAddr(contractAddress)}</span>
           </div>
         )}
 
         {isConnected ? (
-          <div className="flex items-center gap-2 bg-[#101216] border border-[#14B8A6]/30 rounded-xs p-1 pl-3">
+          <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#101216] border border-[#0D9488]/30 rounded-xs p-1 pl-3">
             <div className="text-right pr-1">
-              <div className="text-[10px] text-[#9CA3AF]">Balance</div>
-              <div className="text-xs font-bold text-[#14B8A6] font-mono-data">{balance} GEN</div>
+              <div className="text-[10px] text-slate-500">Balance</div>
+              <div className="text-xs font-bold text-[#0D9488] font-mono-data">{balance} GEN</div>
             </div>
-            <div className="px-2.5 py-1 rounded-xs bg-[#14B8A6]/10 text-[#2DD4BF] text-xs font-mono-data font-medium border border-[#14B8A6]/30 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#14B8A6]"></span>
+            <div className="px-2.5 py-1 rounded-xs bg-[#0D9488]/10 text-[#0D9488] text-xs font-mono-data font-medium border border-[#0D9488]/30 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0D9488]"></span>
               {formatAddr(address)}
             </div>
           </div>
