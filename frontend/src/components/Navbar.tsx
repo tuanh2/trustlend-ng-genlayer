@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wallet, RefreshCw, ShoppingCart, Briefcase, Gavel, Zap, ShieldCheck } from 'lucide-react';
+import { Wallet, RefreshCw, ShoppingCart, Bot, Gavel, Zap } from 'lucide-react';
 
 interface NavbarProps {
   address: string;
@@ -26,84 +26,85 @@ export const Navbar: React.FC<NavbarProps> = ({
     addr ? `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}` : '';
 
   return (
-    <header className="sticky top-0 z-40 bg-[#07040D]/90 backdrop-blur-2xl border-b border-[#A855F7]/25 px-4 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-2xl">
-      {/* Royal Obsidian Brand Lockup */}
+    <header className="sticky top-0 z-40 bg-[#090A0D]/95 border-b border-[#F5C842]/16 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+      {/* Impeccable Brand Lockup (impeccable.style/docs) */}
       <div className="flex items-center gap-3.5">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#A855F7] via-[#C084FC] to-[#38BDF8] flex items-center justify-center text-white shadow-lg shadow-[#A855F7]/30 border border-[#E9D5FF]">
-          <ShieldCheck className="w-6 h-6 stroke-[2.5]" />
+        {/* Carved Tile Mark Glyph [ / ] */}
+        <div className="w-8 h-8 rounded-sm bg-[#F5C842] flex items-center justify-center font-mono-data text-[#090A0D] font-black text-sm border border-[#FDE68A]">
+          /
         </div>
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl md:text-2xl font-black font-syne text-white tracking-tight">
-              TrustLend <span className="gl-violet-gradient">P2P Escrow</span>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-wordmark text-white tracking-widest font-normal">
+              TRUSTLEND <span className="text-[#F5C842]">P2P ESCROW</span>
             </h1>
-            <span className="gl-badge-violet px-3 py-0.5 text-[10px] font-mono-data font-black rounded-full flex items-center gap-1 uppercase tracking-wider">
-              <Zap className="w-3 h-3 text-[#A855F7]" /> AI Auto-Release
+            <span className="ks-badge-patina px-2 py-0.5 text-[10px] font-mono-data font-medium rounded-xs flex items-center gap-1 uppercase tracking-wider">
+              <Zap className="w-3 h-3 text-[#14B8A6]" /> AI Auto-Release
             </span>
           </div>
-          <p className="text-[11px] text-slate-400 font-mono-data flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-[#A855F7] animate-ping"></span>
-            GenLayer studionet • 10% Security Deposit Protected
+          <p className="text-[11px] text-[#9CA3AF] font-mono-data flex items-center gap-2">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#14B8A6]"></span>
+            GenLayer studionet • 10% Security Bond Protected
           </p>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <nav className="flex items-center gap-1.5 bg-[#0F091F] p-1.5 rounded-2xl border border-[#A855F7]/20 shadow-inner">
+      <nav className="flex items-center gap-1 bg-[#040507] p-1 rounded-sm border border-[#F5C842]/16">
         <button
           onClick={() => setActiveTab('market')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xs text-xs font-medium transition-colors ${
             activeTab === 'market'
-              ? 'gl-btn-violet text-white shadow-md shadow-[#A855F7]/30 scale-105'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              ? 'bg-[#F5C842] text-[#090A0D] font-bold'
+              : 'text-[#9CA3AF] hover:text-white'
           }`}
         >
-          <ShoppingCart className="w-4 h-4" />
+          <ShoppingCart className="w-3.5 h-3.5" />
           P2P Escrow Market
         </button>
 
         <button
           onClick={() => setActiveTab('merchant')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xs text-xs font-medium transition-colors ${
             activeTab === 'merchant'
-              ? 'bg-[#A855F7]/20 text-[#E9D5FF] border border-[#A855F7]/40 shadow-md shadow-purple-500/20 scale-105 font-syne'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              ? 'bg-[#14B8A6] text-[#090A0D] font-bold'
+              : 'text-[#9CA3AF] hover:text-white'
           }`}
         >
-          <Briefcase className="w-4 h-4" />
-          Merchant Hub
+          <Bot className="w-3.5 h-3.5" />
+          Merchant AI Bot
         </button>
 
         <button
           onClick={() => setActiveTab('dispute')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xs text-xs font-medium transition-colors ${
             activeTab === 'dispute'
-              ? 'bg-[#1E1B4B] text-white border border-[#A855F7]/40 shadow-md shadow-purple-500/20 scale-105'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              ? 'bg-[#16181D] text-white border border-[#F5C842]/30 font-bold'
+              : 'text-[#9CA3AF] hover:text-white'
           }`}
         >
-          <Gavel className="w-4 h-4 text-[#A855F7]" />
-          AI Audit & Anti-Fraud
+          <Gavel className="w-3.5 h-3.5 text-[#F5C842]" />
+          AI Anti-Fraud Audit
         </button>
       </nav>
 
       {/* Wallet Controls */}
       <div className="flex items-center gap-3">
         {contractAddress && (
-          <div className="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#0F091F] border border-[#A855F7]/20 text-xs font-mono-data text-slate-400">
-            <span className="text-slate-500">CA:</span>
-            <span className="text-[#C084FC] font-bold">{formatAddr(contractAddress)}</span>
+          <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-xs bg-[#040507] border border-[#F5C842]/16 text-xs font-mono-data text-[#9CA3AF]">
+            <span className="text-[#6B7280]">CA:</span>
+            <span className="text-[#F5C842] font-medium">{formatAddr(contractAddress)}</span>
           </div>
         )}
 
         {isConnected ? (
-          <div className="flex items-center gap-2 bg-[#0F091F] border border-[#A855F7]/30 rounded-2xl p-1.5 pl-3.5">
+          <div className="flex items-center gap-2 bg-[#101216] border border-[#14B8A6]/30 rounded-xs p-1 pl-3">
             <div className="text-right pr-1">
-              <div className="text-[10px] text-slate-400 font-medium">Balance</div>
-              <div className="text-xs font-black text-[#E9D5FF] font-mono-data">{balance} GEN</div>
+              <div className="text-[10px] text-[#9CA3AF]">Balance</div>
+              <div className="text-xs font-bold text-[#14B8A6] font-mono-data">{balance} GEN</div>
             </div>
-            <div className="px-3.5 py-1.5 rounded-xl bg-[#A855F7]/15 text-[#E9D5FF] text-xs font-mono-data font-black border border-[#A855F7]/30 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#A855F7] animate-pulse"></span>
+            <div className="px-2.5 py-1 rounded-xs bg-[#14B8A6]/10 text-[#2DD4BF] text-xs font-mono-data font-medium border border-[#14B8A6]/30 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#14B8A6]"></span>
               {formatAddr(address)}
             </div>
           </div>
@@ -111,15 +112,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onConnect}
             disabled={isConnecting}
-            className="gl-btn-violet px-6 py-2.5 text-xs font-black flex items-center gap-2"
+            className="ks-button-primary px-4 py-1.5 text-xs font-semibold flex items-center gap-2"
           >
             {isConnecting ? (
               <>
-                <RefreshCw className="w-4 h-4 animate-spin" /> Connecting...
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Connecting...
               </>
             ) : (
               <>
-                <Wallet className="w-4 h-4" /> Connect Wallet
+                <Wallet className="w-3.5 h-3.5" /> Connect Wallet
               </>
             )}
           </button>

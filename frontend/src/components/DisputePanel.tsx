@@ -58,28 +58,28 @@ export const DisputePanel: React.FC<DisputeCenterProps> = ({
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header Info */}
-      <div className="gl-violet-panel p-6 md:p-8 rounded-3xl relative overflow-hidden">
+      <div className="ks-panel p-6 md:p-8 rounded-sm relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/15 text-purple-300 text-xs font-mono-data font-bold border border-purple-500/30">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xs bg-[#F5C842]/10 text-[#F5C842] text-xs font-mono-data font-medium border border-[#F5C842]/25">
               <Gavel className="w-3.5 h-3.5" /> Subjective Consensus Court
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-white font-syne">
+            <h1 className="text-3xl md:text-4xl text-white font-light tracking-tight">
               AI Verification Audit & Anti-Fraud Logs
-            </h2>
-            <p className="text-xs text-slate-300 leading-relaxed">
+            </h1>
+            <p className="text-xs text-[#9CA3AF] leading-relaxed">
               Transparent, immutable record of GenLayer AI Validator decisions. Review verification prompts, bank receipt audit trails, and 10% Security Deposit slash penalties.
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#07040D] border border-[#A855F7]/20 space-y-2 shrink-0 font-mono-data text-xs">
-            <div className="text-slate-400 flex items-center justify-between gap-4">
+          <div className="p-4 rounded-xs bg-[#040507] border border-[#F5C842]/16 space-y-2 shrink-0 font-mono-data text-xs">
+            <div className="text-[#9CA3AF] flex items-center justify-between gap-4">
               <span>Audited Trades:</span>
-              <span className="text-[#E9D5FF] font-bold">{orders.length} Logs</span>
+              <span className="text-[#F5C842] font-bold">{orders.length} Logs</span>
             </div>
-            <div className="text-slate-400 flex items-center justify-between gap-4">
+            <div className="text-[#9CA3AF] flex items-center justify-between gap-4">
               <span>Consensus Engine:</span>
-              <span className="text-[#10B981] font-bold">Optimistic Democracy</span>
+              <span className="text-[#14B8A6] font-bold">Optimistic Democracy</span>
             </div>
           </div>
         </div>
@@ -88,13 +88,13 @@ export const DisputePanel: React.FC<DisputeCenterProps> = ({
       {/* Filter / Search Bar */}
       <div className="flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+          <Search className="w-4 h-4 text-[#6B7280] absolute left-3.5 top-2.5" />
           <input
             type="text"
             value={searchId}
             onChange={e => setSearchId(e.target.value)}
             placeholder="Search by Order ID or Memo Ref Code (e.g. TLENG)..."
-            className="w-full bg-[#07040D] border border-[#A855F7]/20 rounded-xl pl-9 pr-4 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#A855F7]"
+            className="w-full bg-[#040507] border border-[#F5C842]/16 rounded-xs pl-9 pr-4 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#F5C842]"
           />
         </div>
       </div>
@@ -102,10 +102,10 @@ export const DisputePanel: React.FC<DisputeCenterProps> = ({
       {/* Audit Logs List */}
       <div className="space-y-4">
         {filteredOrders.length === 0 ? (
-          <div className="gl-violet-panel p-12 rounded-3xl text-center space-y-3">
-            <FileText className="w-10 h-10 text-slate-500 mx-auto" />
-            <h4 className="text-lg font-bold text-white font-syne">No AI Audit Logs Available</h4>
-            <p className="text-xs text-slate-400 max-w-md mx-auto">
+          <div className="ks-panel p-12 rounded-sm text-center space-y-3">
+            <FileText className="w-10 h-10 text-[#6B7280] mx-auto" />
+            <h3 className="text-lg font-bold text-white">No AI Audit Logs Available</h3>
+            <p className="text-xs text-[#9CA3AF] max-w-md mx-auto">
               Submit payment proof on an active trade in the P2P Escrow Market to generate live AI validator verification logs!
             </p>
           </div>
@@ -113,49 +113,49 @@ export const DisputePanel: React.FC<DisputeCenterProps> = ({
           filteredOrders.map(ord => (
             <div
               key={ord.order_id}
-              className="gl-violet-panel p-6 rounded-2xl space-y-4"
+              className="ks-panel p-6 rounded-sm space-y-4"
             >
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3 font-mono-data">
-                  <span className="px-3 py-1 rounded-xl bg-[#07040D] text-slate-200 text-xs font-bold border border-white/10">
+                  <span className="px-2.5 py-0.5 rounded-xs bg-[#040507] text-[#E5E7EB] text-xs font-bold border border-white/10">
                     Order #{ord.order_id}
                   </span>
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-[#9CA3AF]">
                     Memo: <span className="text-amber-400 font-bold">{ord.ref_code}</span>
                   </span>
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-[#9CA3AF]">
                     Amount: <span className="text-white font-bold">{ord.fiat_amount.toLocaleString()} {ord.fiat_currency}</span> ({ord.crypto_amount} GEN)
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2 font-mono-data">
                   <span
-                    className={`px-3 py-1 rounded-xl text-xs font-bold uppercase flex items-center gap-1.5 ${
+                    className={`px-3 py-1 rounded-xs text-xs font-bold uppercase flex items-center gap-1.5 ${
                       ord.ai_verdict === 'MATCHED'
-                        ? 'gl-badge-emerald'
+                        ? 'ks-badge-patina'
                         : ord.ai_verdict === 'FRAUD'
-                        ? 'gl-badge-rose'
-                        : 'gl-badge-gold'
+                        ? 'ks-badge-vermilion'
+                        : 'ks-badge-gold'
                     }`}
                   >
-                    {ord.ai_verdict === 'MATCHED' && <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />}
-                    {ord.ai_verdict === 'FRAUD' && <ShieldAlert className="w-3.5 h-3.5 text-[#F43F5E]" />}
+                    {ord.ai_verdict === 'MATCHED' && <CheckCircle2 className="w-3.5 h-3.5 text-[#14B8A6]" />}
+                    {ord.ai_verdict === 'FRAUD' && <ShieldAlert className="w-3.5 h-3.5 text-[#EF4444]" />}
                     AI Verdict: {ord.ai_verdict}
                   </span>
                 </div>
               </div>
 
               {/* Reasoning Callout Box */}
-              <div className="p-4 rounded-2xl bg-[#07040D] border border-white/10 space-y-2 text-xs">
-                <div className="flex items-center gap-1.5 text-[#A855F7] font-bold">
-                  <Sparkles className="w-4 h-4 text-[#A855F7]" /> AI Validator Consensus Explanation:
+              <div className="p-4 rounded-xs bg-[#040507] border border-white/10 space-y-2 text-xs">
+                <div className="flex items-center gap-1.5 text-[#F5C842] font-bold">
+                  <Sparkles className="w-3.5 h-3.5 text-[#F5C842]" /> AI Validator Consensus Explanation:
                 </div>
-                <p className="text-slate-300 font-mono-data leading-relaxed bg-[#0F091F] p-3 rounded-xl border border-white/5">
+                <p className="text-[#E5E7EB] font-mono-data leading-relaxed bg-[#101216] p-3 rounded-xs border border-white/5">
                   "{ord.ai_reason}"
                 </p>
-                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 font-mono-data">
+                <div className="flex items-center justify-between text-[11px] text-[#6B7280] pt-1 font-mono-data">
                   <span>Proof URL: {ord.proof_url}</span>
-                  <span>{ord.ai_verdict === 'FRAUD' ? '⚠️ 10% Security Deposit Slashed to Seller' : '✓ Escrow Auto-Released to Buyer'}</span>
+                  <span>{ord.ai_verdict === 'FRAUD' ? '⚠️ 10% Security Bond Slashed to Seller' : '✓ Escrow Auto-Released to Buyer'}</span>
                 </div>
               </div>
             </div>

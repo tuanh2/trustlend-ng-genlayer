@@ -138,16 +138,16 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Merchant AI Auto-Bot Header Banner */}
-      <div className="gl-violet-panel p-6 md:p-8 rounded-3xl border border-[#A855F7]/30 bg-gradient-to-r from-[#0F091F] via-[#160D2E] to-[#2E1065] relative overflow-hidden shadow-2xl space-y-6">
+      <div className="ks-panel p-6 md:p-8 rounded-sm space-y-6 relative overflow-hidden">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#A855F7]/15 text-[#E9D5FF] text-xs font-mono-data font-bold border border-[#A855F7]/30">
-              <Bot className="w-4 h-4 text-[#A855F7] animate-pulse" /> Merchant AI Auto-Release Bot Hub
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xs bg-[#F5C842]/10 text-[#F5C842] text-xs font-mono-data font-medium border border-[#F5C842]/25">
+              <Bot className="w-4 h-4 text-[#F5C842]" /> Merchant AI Auto-Release Bot Hub
             </div>
-            <h2 className="text-2xl md:text-3xl font-black text-white font-syne tracking-tight">
+            <h1 className="text-3xl md:text-4xl text-white font-light tracking-tight">
               CEX Multi-Exchange P2P Auto-Seller Bot
-            </h2>
-            <p className="text-xs text-slate-300 leading-relaxed">
+            </h1>
+            <p className="text-xs text-[#9CA3AF] leading-relaxed">
               Connect your Binance, OKX, Bybit & MEXC P2P API keys. GenLayer AI automatically verifies buyer bank payments in real-time and releases USDT/Crypto <strong>without any seller manual effort!</strong>
             </p>
           </div>
@@ -155,44 +155,44 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
           <button
             onClick={simulateIncomingCEXOrder}
             disabled={isSimulatingOrder}
-            className="gl-btn-violet px-6 py-3.5 text-xs font-black flex items-center gap-2 shrink-0 shadow-lg shadow-[#A855F7]/30 disabled:opacity-50"
+            className="ks-button-primary px-5 py-2.5 text-xs font-semibold flex items-center gap-2 shrink-0 disabled:opacity-50"
           >
             {isSimulatingOrder ? (
               <>
-                <RefreshCw className="w-4 h-4 animate-spin" /> Receiving CEX Order...
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Receiving CEX Order...
               </>
             ) : (
               <>
-                <Play className="w-4 h-4 fill-white" /> ⚡ Simulate Incoming Binance 100 USDT Order
+                <Play className="w-3.5 h-3.5 fill-[#090A0D]" /> ⚡ Simulate Incoming Binance 100 USDT Order
               </>
             )}
           </button>
         </div>
 
         {/* CEX API Connection Badges */}
-        <div className="space-y-2 pt-2 border-t border-white/10 font-mono-data">
-          <div className="text-xs font-bold text-slate-300 flex items-center gap-2">
-            <Key className="w-3.5 h-3.5 text-[#A855F7]" /> Connected Exchange P2P APIs:
+        <div className="space-y-2 pt-2 border-t border-[#F5C842]/16 font-mono-data">
+          <div className="text-xs font-medium text-[#9CA3AF] flex items-center gap-2">
+            <Key className="w-3.5 h-3.5 text-[#F5C842]" /> Connected Exchange P2P APIs:
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {cexList.map(cex => (
               <div
                 key={cex.id}
                 onClick={() => toggleCexConnection(cex.id)}
-                className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-center justify-between text-xs ${
+                className={`p-3 rounded-xs border cursor-pointer transition-all flex items-center justify-between text-xs ${
                   cex.connected
-                    ? 'border-[#A855F7]/50 bg-[#A855F7]/15 text-white shadow-md shadow-[#A855F7]/10'
-                    : 'border-white/10 bg-slate-950/40 text-slate-500 hover:border-white/20'
+                    ? 'border-[#F5C842]/40 bg-[#F5C842]/10 text-white'
+                    : 'border-white/10 bg-[#040507] text-[#6B7280] hover:border-white/20'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <span>{cex.logo}</span>
                   <div>
                     <div className="font-bold text-white text-xs">{cex.name}</div>
-                    <div className="text-[10px] text-slate-400">{cex.connected ? cex.apiKey : 'Disconnected'}</div>
+                    <div className="text-[10px] text-[#9CA3AF]">{cex.connected ? cex.apiKey : 'Disconnected'}</div>
                   </div>
                 </div>
-                <span className={`w-2.5 h-2.5 rounded-full ${cex.connected ? 'bg-[#10B981] animate-pulse' : 'bg-slate-600'}`}></span>
+                <span className={`w-2 h-2 rounded-full ${cex.connected ? 'bg-[#14B8A6]' : 'bg-[#6B7280]'}`}></span>
               </div>
             ))}
           </div>
@@ -201,55 +201,55 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
 
       {/* Today's Sales & Performance Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="gl-violet-panel p-5 rounded-2xl border border-white/10 flex items-center gap-4 relative overflow-hidden">
-          <div className="w-12 h-12 rounded-2xl bg-[#A855F7]/20 text-[#E9D5FF] flex items-center justify-center border border-[#A855F7]/30 shrink-0">
-            <DollarSign className="w-6 h-6" />
+        <div className="ks-panel p-5 rounded-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xs bg-[#F5C842]/10 text-[#F5C842] flex items-center justify-center border border-[#F5C842]/25 shrink-0">
+            <DollarSign className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Today's Sales Volume</div>
-            <div className="text-2xl font-black text-white font-mono-data">
+            <div className="text-xs text-[#9CA3AF] font-medium">Today's Sales Volume</div>
+            <div className="text-2xl font-bold text-white font-mono-data">
               ${totalUsdtToday.toLocaleString()} USDT
             </div>
-            <div className="text-[10px] text-[#10B981] font-mono-data">≈ {totalVndToday.toLocaleString()} VND</div>
+            <div className="text-[10px] text-[#14B8A6] font-mono-data">≈ {totalVndToday.toLocaleString()} VND</div>
           </div>
         </div>
 
-        <div className="gl-violet-panel p-5 rounded-2xl border border-white/10 flex items-center gap-4 relative overflow-hidden">
-          <div className="w-12 h-12 rounded-2xl bg-[#10B981]/20 text-[#10B981] flex items-center justify-center border border-[#10B981]/30 shrink-0">
-            <CheckCircle2 className="w-6 h-6" />
+        <div className="ks-panel p-5 rounded-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xs bg-[#14B8A6]/10 text-[#14B8A6] flex items-center justify-center border border-[#14B8A6]/25 shrink-0">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">AI Auto-Released Today</div>
-            <div className="text-2xl font-black text-[#10B981] font-mono-data">
+            <div className="text-xs text-[#9CA3AF] font-medium">AI Auto-Released Today</div>
+            <div className="text-2xl font-bold text-[#14B8A6] font-mono-data">
               {autoCompletedCount} Trades
             </div>
-            <div className="text-[10px] text-slate-400 font-mono-data">100% Zero Seller Wait</div>
+            <div className="text-[10px] text-[#9CA3AF] font-mono-data">100% Zero Seller Wait</div>
           </div>
         </div>
 
-        <div className="gl-violet-panel p-5 rounded-2xl border border-white/10 flex items-center gap-4 relative overflow-hidden">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0">
-            <AlertTriangle className="w-6 h-6" />
+        <div className="ks-panel p-5 rounded-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xs bg-amber-400/10 text-amber-400 flex items-center justify-center border border-amber-400/25 shrink-0">
+            <AlertTriangle className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Requires Manual Review</div>
-            <div className="text-2xl font-black text-amber-400 font-mono-data">
+            <div className="text-xs text-[#9CA3AF] font-medium">Requires Manual Review</div>
+            <div className="text-2xl font-bold text-amber-400 font-mono-data">
               {needsReviewCount} Order
             </div>
-            <div className="text-[10px] text-slate-400 font-mono-data">Flagged Mismatched Proof</div>
+            <div className="text-[10px] text-[#9CA3AF] font-mono-data">Flagged Mismatched Proof</div>
           </div>
         </div>
 
-        <div className="gl-violet-panel p-5 rounded-2xl border border-white/10 flex items-center gap-4 relative overflow-hidden">
-          <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-300 flex items-center justify-center border border-purple-500/30 shrink-0">
-            <ShieldCheck className="w-6 h-6" />
+        <div className="ks-panel p-5 rounded-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xs bg-[#F5C842]/10 text-[#F5C842] flex items-center justify-center border border-[#F5C842]/25 shrink-0">
+            <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Reputation Score</div>
-            <div className="text-2xl font-black text-purple-300 font-mono-data">
+            <div className="text-xs text-[#9CA3AF] font-medium">Reputation Score</div>
+            <div className="text-2xl font-bold text-white font-mono-data">
               100 / 100
             </div>
-            <div className="text-[10px] text-slate-400 font-mono-data">Verified Merchant Badge</div>
+            <div className="text-[10px] text-[#9CA3AF] font-mono-data">Verified Merchant Badge</div>
           </div>
         </div>
       </div>
@@ -257,27 +257,27 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
       {/* CEX Orders Stream & Filters */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h3 className="text-xl font-bold text-white font-syne flex items-center gap-2">
-            <Zap className="w-5 h-5 text-[#A855F7]" /> Real-Time CEX P2P Order Stream
-          </h3>
+          <h2 className="text-2xl font-light text-white flex items-center gap-2">
+            <Zap className="w-5 h-5 text-[#F5C842]" /> Real-Time CEX P2P Order Stream
+          </h2>
 
           {/* Filter Tabs */}
-          <div className="flex items-center gap-1.5 bg-[#0F091F] p-1 rounded-2xl border border-[#A855F7]/20 font-mono-data text-xs">
+          <div className="flex items-center gap-1 bg-[#040507] p-1 rounded-xs border border-[#F5C842]/16 font-mono-data text-xs">
             <button
               onClick={() => setActiveFilter('ALL')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${activeFilter === 'ALL' ? 'bg-[#A855F7] text-white' : 'text-slate-400 hover:text-white'}`}
+              className={`px-3 py-1 rounded-xs font-medium transition-all ${activeFilter === 'ALL' ? 'bg-[#F5C842] text-[#090A0D] font-bold' : 'text-[#9CA3AF] hover:text-white'}`}
             >
               All Trades ({cexOrders.length})
             </button>
             <button
               onClick={() => setActiveFilter('COMPLETED_AUTO')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${activeFilter === 'COMPLETED_AUTO' ? 'bg-[#10B981] text-white' : 'text-slate-400 hover:text-white'}`}
+              className={`px-3 py-1 rounded-xs font-medium transition-all ${activeFilter === 'COMPLETED_AUTO' ? 'bg-[#14B8A6] text-[#090A0D] font-bold' : 'text-[#9CA3AF] hover:text-white'}`}
             >
               Auto-Released ({autoCompletedCount})
             </button>
             <button
               onClick={() => setActiveFilter('NEEDS_REVIEW')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${activeFilter === 'NEEDS_REVIEW' ? 'bg-amber-500 text-white' : 'text-slate-400 hover:text-white'}`}
+              className={`px-3 py-1 rounded-xs font-medium transition-all ${activeFilter === 'NEEDS_REVIEW' ? 'bg-amber-400 text-[#090A0D] font-bold' : 'text-[#9CA3AF] hover:text-white'}`}
             >
               Needs Review ({needsReviewCount})
             </button>
@@ -289,56 +289,48 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
           {filteredCexOrders.map(ord => (
             <div
               key={ord.id}
-              className={`gl-violet-panel p-5 rounded-3xl border transition-all ${
-                ord.status === 'COMPLETED_AUTO'
-                  ? 'border-[#10B981]/30 bg-[#0F091F]'
-                  : ord.status === 'NEEDS_REVIEW'
-                  ? 'border-amber-500/40 bg-amber-500/10'
-                  : 'border-rose-500/40 bg-rose-500/10'
-              }`}
+              className="ks-panel p-5 rounded-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4 font-mono-data"
             >
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 font-mono-data">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 rounded-xl bg-[#A855F7]/15 text-[#E9D5FF] font-bold text-xs border border-[#A855F7]/30">
-                      {ord.exchange}
-                    </span>
-                    <span className="text-sm font-black text-white">{ord.id}</span>
-                    <span className="text-xs text-[#10B981] font-bold">{ord.cryptoAmount} USDT</span>
-                    <span className="text-xs text-slate-400">• {ord.fiatAmount.toLocaleString()} {ord.currency}</span>
-                    <span className="text-[10px] text-slate-500 ml-auto lg:ml-0">{ord.timestamp}</span>
-                  </div>
-
-                  <div className="text-xs text-slate-300">
-                    Buyer: <span className="font-bold text-white">{ord.buyerName}</span> • Bank: <span className="font-bold text-white">{ord.bankName}</span> ({ord.accountNumber}) • Memo: <span className="text-amber-400 font-bold">{ord.refCode}</span>
-                  </div>
-
-                  <div className="text-[11px] text-slate-400 bg-[#07040D] p-3 rounded-xl border border-white/5 flex items-center gap-2">
-                    <Cpu className="w-4 h-4 text-[#A855F7] shrink-0" />
-                    <span>{ord.aiReason}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0">
-                  <div className="text-right">
-                    <div className="text-[10px] text-slate-400">AI Confidence</div>
-                    <div className={`text-sm font-black ${ord.aiScore > 90 ? 'text-[#10B981]' : 'text-amber-400'}`}>
-                      {ord.aiScore}% Match
-                    </div>
-                  </div>
-
-                  <span
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase ${
-                      ord.status === 'COMPLETED_AUTO'
-                        ? 'gl-badge-emerald'
-                        : ord.status === 'NEEDS_REVIEW'
-                        ? 'gl-badge-gold'
-                        : 'gl-badge-rose'
-                    }`}
-                  >
-                    {ord.status === 'COMPLETED_AUTO' ? '✓ Auto-Released' : '⚠️ Needs Review'}
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="ks-badge-gold px-2.5 py-0.5 rounded-xs font-medium text-xs">
+                    {ord.exchange}
                   </span>
+                  <span className="text-sm font-bold text-white">{ord.id}</span>
+                  <span className="text-xs text-[#14B8A6] font-bold">{ord.cryptoAmount} USDT</span>
+                  <span className="text-xs text-[#9CA3AF]">• {ord.fiatAmount.toLocaleString()} {ord.currency}</span>
+                  <span className="text-[10px] text-[#6B7280] ml-auto lg:ml-0">{ord.timestamp}</span>
                 </div>
+
+                <div className="text-xs text-[#E5E7EB]">
+                  Buyer: <span className="font-bold text-white">{ord.buyerName}</span> • Bank: <span className="font-bold text-white">{ord.bankName}</span> ({ord.accountNumber}) • Memo: <span className="text-amber-400 font-bold">{ord.refCode}</span>
+                </div>
+
+                <div className="text-[11px] text-[#9CA3AF] bg-[#040507] p-2.5 rounded-xs border border-white/5 flex items-center gap-2">
+                  <Cpu className="w-3.5 h-3.5 text-[#F5C842] shrink-0" />
+                  <span>{ord.aiReason}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0">
+                <div className="text-right">
+                  <div className="text-[10px] text-[#9CA3AF]">AI Confidence</div>
+                  <div className={`text-sm font-bold ${ord.aiScore > 90 ? 'text-[#14B8A6]' : 'text-amber-400'}`}>
+                    {ord.aiScore}% Match
+                  </div>
+                </div>
+
+                <span
+                  className={`px-3 py-1 rounded-xs text-xs font-bold uppercase ${
+                    ord.status === 'COMPLETED_AUTO'
+                      ? 'ks-badge-patina'
+                      : ord.status === 'NEEDS_REVIEW'
+                      ? 'ks-badge-gold'
+                      : 'ks-badge-vermilion'
+                  }`}
+                >
+                  {ord.status === 'COMPLETED_AUTO' ? '✓ Auto-Released' : '⚠️ Needs Review'}
+                </span>
               </div>
             </div>
           ))}
