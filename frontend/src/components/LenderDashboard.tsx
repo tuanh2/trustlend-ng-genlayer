@@ -107,97 +107,97 @@ export const LenderDashboard: React.FC<MerchantHubProps> = ({
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Merchant Header Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card p-5 rounded-2xl border border-white/10 flex items-center gap-4 relative overflow-hidden">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0">
-            <Briefcase className="w-6 h-6" />
+        <div className="ks-panel p-5 rounded flex items-center gap-4 relative overflow-hidden">
+          <div className="w-11 h-11 rounded bg-[#F5C842]/10 text-[#F5C842] flex items-center justify-center border border-[#F5C842]/30 shrink-0">
+            <Briefcase className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Merchant Reputation</div>
-            <div className="text-2xl font-black text-white font-mono-data">
+            <div className="text-xs text-[#94A3B8] font-mono-data">Merchant Reputation</div>
+            <div className="text-2xl font-bold text-white font-mono-data">
               {profile ? profile.reputation_score : 100} / 100
             </div>
           </div>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl border border-white/10 flex items-center gap-4 relative overflow-hidden">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
-            <ShieldCheck className="w-6 h-6" />
+        <div className="ks-panel p-5 rounded flex items-center gap-4 relative overflow-hidden">
+          <div className="w-11 h-11 rounded bg-[#14B8A6]/10 text-[#14B8A6] flex items-center justify-center border border-[#14B8A6]/30 shrink-0">
+            <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Successful Releases</div>
-            <div className="text-2xl font-black text-emerald-300 font-mono-data">
+            <div className="text-xs text-[#94A3B8] font-mono-data">Successful Releases</div>
+            <div className="text-2xl font-bold text-[#14B8A6] font-mono-data">
               {profile ? profile.successful_releases : 0} Trades
             </div>
           </div>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl border border-white/10 flex items-center gap-4 relative overflow-hidden">
-          <div className="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center border border-purple-500/30 shrink-0">
-            <Lock className="w-6 h-6" />
+        <div className="ks-panel p-5 rounded flex items-center gap-4 relative overflow-hidden">
+          <div className="w-11 h-11 rounded bg-purple-500/10 text-purple-300 flex items-center justify-center border border-purple-500/30 shrink-0">
+            <Lock className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">My Active Listings</div>
-            <div className="text-2xl font-black text-purple-300 font-mono-data">
+            <div className="text-xs text-[#94A3B8] font-mono-data">My Active Listings</div>
+            <div className="text-2xl font-bold text-purple-300 font-mono-data">
               {merchantOrders.length} Orders
             </div>
           </div>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl border border-white/10 flex items-center gap-4 relative overflow-hidden">
-          <div className="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
-            <DollarSign className="w-6 h-6" />
+        <div className="ks-panel p-5 rounded flex items-center gap-4 relative overflow-hidden">
+          <div className="w-11 h-11 rounded bg-blue-500/10 text-blue-300 flex items-center justify-center border border-blue-500/30 shrink-0">
+            <DollarSign className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Escrow Security</div>
-            <div className="text-2xl font-black text-blue-300 font-mono-data">100% On-Chain</div>
+            <div className="text-xs text-[#94A3B8] font-mono-data">Escrow Security</div>
+            <div className="text-2xl font-bold text-blue-300 font-mono-data">100% On-Chain</div>
           </div>
         </div>
       </div>
 
       {/* Create P2P Sell Order Form */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 glass-card p-6 rounded-2xl border border-white/10 space-y-4">
+        <div className="lg:col-span-1 ks-panel p-6 rounded space-y-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <div className="p-2 rounded bg-[#F5C842]/10 text-[#F5C842] border border-[#F5C842]/30">
               <PlusCircle className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">Create P2P Sell Order</h3>
-              <p className="text-xs text-slate-400">Lock GEN into Escrow and specify bank payment details.</p>
+              <h3 className="text-lg font-bold text-white font-display">Create P2P Sell Order</h3>
+              <p className="text-xs text-[#94A3B8]">Lock GEN into Escrow and specify bank payment details.</p>
             </div>
           </div>
 
           <form onSubmit={handleCreateOrder} className="space-y-3.5 pt-2">
             <div>
-              <label className="block text-[11px] font-medium text-slate-300 mb-1">
+              <label className="block text-[11px] font-bold text-[#E2E8F0] mb-1 font-mono-data">
                 Crypto Amount to Escrow ($ GEN)
               </label>
               <input
                 type="number"
                 value={cryptoAmount}
                 onChange={e => setCryptoAmount(e.target.value)}
-                className="w-full bg-dark-base/90 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-amber-500"
+                className="w-full bg-[#050607] border border-[#F5C842]/30 rounded px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#F5C842]"
                 required
               />
             </div>
 
             <div className="grid grid-cols-3 gap-2">
               <div className="col-span-2">
-                <label className="block text-[11px] font-medium text-slate-300 mb-1">Required Fiat</label>
+                <label className="block text-[11px] font-bold text-[#E2E8F0] mb-1 font-mono-data">Required Fiat</label>
                 <input
                   type="number"
                   value={fiatAmount}
                   onChange={e => setFiatAmount(e.target.value)}
-                  className="w-full bg-dark-base/90 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-amber-500"
+                  className="w-full bg-[#050607] border border-[#F5C842]/30 rounded px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#F5C842]"
                   required
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-slate-300 mb-1">Currency</label>
+                <label className="block text-[11px] font-bold text-[#E2E8F0] mb-1 font-mono-data">Currency</label>
                 <select
                   value={fiatCurrency}
                   onChange={e => setFiatCurrency(e.target.value)}
-                  className="w-full bg-dark-base/90 border border-slate-700 rounded-xl px-2 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-amber-500"
+                  className="w-full bg-[#050607] border border-[#F5C842]/30 rounded px-2 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#F5C842]"
                 >
                   <option value="VND">VND</option>
                   <option value="NGN">NGN</option>
@@ -208,55 +208,55 @@ export const LenderDashboard: React.FC<MerchantHubProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-slate-300 mb-1">Bank Name</label>
+              <label className="block text-[11px] font-bold text-[#E2E8F0] mb-1 font-mono-data">Bank Name</label>
               <input
                 type="text"
                 value={bankName}
                 onChange={e => setBankName(e.target.value)}
-                className="w-full bg-dark-base/90 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-amber-500"
+                className="w-full bg-[#050607] border border-[#F5C842]/30 rounded px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#F5C842]"
                 required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[11px] font-medium text-slate-300 mb-1">Account Number</label>
+                <label className="block text-[11px] font-bold text-[#E2E8F0] mb-1 font-mono-data">Account Number</label>
                 <input
                   type="text"
                   value={bankAccount}
                   onChange={e => setBankAccount(e.target.value)}
-                  className="w-full bg-dark-base/90 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-amber-500"
+                  className="w-full bg-[#050607] border border-[#F5C842]/30 rounded px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#F5C842]"
                   required
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-slate-300 mb-1">Account Owner Name</label>
+                <label className="block text-[11px] font-bold text-[#E2E8F0] mb-1 font-mono-data">Account Owner Name</label>
                 <input
                   type="text"
                   value={accountHolder}
                   onChange={e => setAccountHolder(e.target.value)}
-                  className="w-full bg-dark-base/90 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-amber-500"
+                  className="w-full bg-[#050607] border border-[#F5C842]/30 rounded px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#F5C842]"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-slate-300 mb-1">
+              <label className="block text-[11px] font-bold text-[#E2E8F0] mb-1 font-mono-data">
                 Required Transfer Memo Code
               </label>
               <input
                 type="text"
                 value={refCode}
                 onChange={e => setRefCode(e.target.value.toUpperCase())}
-                className="w-full bg-dark-base/90 border border-amber-500/50 rounded-xl px-3 py-2 text-xs text-amber-400 font-mono-data font-bold focus:outline-none"
+                className="w-full bg-[#050607] border border-[#F5C842] rounded px-3 py-2 text-xs text-[#F5C842] font-mono-data font-bold focus:outline-none"
                 required
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-bold py-3 rounded-xl text-xs transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
+              className="ks-button-primary w-full py-3 text-xs flex items-center justify-center gap-2"
             >
               <Lock className="w-4 h-4" /> Lock Crypto & Publish Sell Order
             </button>
@@ -266,17 +266,17 @@ export const LenderDashboard: React.FC<MerchantHubProps> = ({
         {/* Merchant Active Escrow Listings */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-white">My Active Merchant Listings</h3>
+            <h3 className="text-lg font-bold text-white font-display">My Active Merchant Listings</h3>
             <button
               onClick={fetchMerchantData}
-              className="text-xs text-slate-400 hover:text-white flex items-center gap-1"
+              className="text-xs text-[#94A3B8] hover:text-white flex items-center gap-1 font-mono-data"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Refresh
             </button>
           </div>
 
           {merchantOrders.length === 0 ? (
-            <div className="glass-card p-12 rounded-2xl border border-white/10 text-center text-xs text-slate-400">
+            <div className="ks-panel p-12 rounded text-center text-xs text-[#94A3B8]">
               You have no active P2P sell orders. Fill the form on the left to lock GEN into escrow!
             </div>
           ) : (
@@ -284,27 +284,27 @@ export const LenderDashboard: React.FC<MerchantHubProps> = ({
               {merchantOrders.map(ord => (
                 <div
                   key={ord.order_id}
-                  className="glass-card p-4 rounded-xl border border-white/10 flex flex-wrap items-center justify-between gap-4 font-mono-data"
+                  className="ks-panel p-4 rounded flex flex-wrap items-center justify-between gap-4 font-mono-data"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-white">Order #{ord.order_id}</span>
-                      <span className="text-xs text-emerald-400 font-bold">{ord.crypto_amount} GEN</span>
-                      <span className="text-xs text-slate-400">• {ord.fiat_amount.toLocaleString()} {ord.fiat_currency}</span>
+                      <span className="text-xs text-[#14B8A6] font-bold">{ord.crypto_amount} GEN</span>
+                      <span className="text-xs text-[#94A3B8]">• {ord.fiat_amount.toLocaleString()} {ord.fiat_currency}</span>
                     </div>
-                    <div className="text-[11px] text-slate-400">
-                      Bank: {ord.bank_name} ({ord.bank_account}) • Memo: <span className="text-amber-400 font-bold">{ord.ref_code}</span>
+                    <div className="text-[11px] text-[#94A3B8]">
+                      Bank: {ord.bank_name} ({ord.bank_account}) • Memo: <span className="text-[#F5C842] font-bold">{ord.ref_code}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <span
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase ${
+                      className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase ${
                         ord.status === 'LISTED'
-                          ? 'bg-blue-500/20 text-blue-300'
+                          ? 'ks-badge-patina'
                           : ord.status === 'COMPLETED'
-                          ? 'bg-emerald-500/20 text-emerald-300'
-                          : 'bg-amber-500/20 text-amber-300'
+                          ? 'ks-badge-gold'
+                          : 'ks-badge-vermilion'
                       }`}
                     >
                       {ord.status}
@@ -313,7 +313,7 @@ export const LenderDashboard: React.FC<MerchantHubProps> = ({
                     {ord.status === 'LISTED' && (
                       <button
                         onClick={() => handleCancelOrder(ord.order_id)}
-                        className="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 rounded-lg text-xs font-bold border border-rose-500/30 flex items-center gap-1 transition-all"
+                        className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 rounded text-xs font-bold border border-rose-500/30 flex items-center gap-1 transition-all"
                       >
                         <XCircle className="w-3.5 h-3.5" /> Cancel & Refund
                       </button>

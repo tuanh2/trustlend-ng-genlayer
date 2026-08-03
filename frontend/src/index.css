@@ -1,158 +1,155 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600;700&family=Alumni+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
+
+:root {
+  /* Impeccable Neo Kinpaku Brand Tokens */
+  --ks-kinpaku-gold: #F5C842;
+  --ks-kinpaku-rich: #E5B626;
+  --ks-kinpaku-pale: #FDE68A;
+  --ks-verdigris-patina: #14B8A6;
+  --ks-patina-text: #2DD4BF;
+  --ks-lacquer-black: #0B0C0E;
+  --ks-lacquer-deep: #050607;
+  --ks-raised-lacquer: #121417;
+  --ks-graphite: #191C20;
+  --ks-graphite-2: #21252B;
+  --ks-champagne: #F8FAFC;
+  --ks-text-warm: #E2E8F0;
+  --ks-text-muted: #94A3B8;
+  --ks-vermilion: #F43F5E;
+
+  --ks-rule: rgba(245, 200, 66, 0.18);
+  --ks-rule-strong: rgba(245, 200, 66, 0.45);
+  --ks-rule-patina: rgba(20, 184, 166, 0.35);
+}
 
 @layer base {
   body {
     margin: 0;
-    background-color: #030712;
+    background-color: var(--ks-lacquer-black);
     background-image: 
-      radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(245, 158, 11, 0.08) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(245, 200, 66, 0.06) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(20, 184, 166, 0.06) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(5, 6, 7, 0.9) 0px, transparent 50%);
     background-attachment: fixed;
-    color: #F8FAFC;
-    font-family: 'Inter', sans-serif;
+    color: var(--ks-text-warm);
+    font-family: 'Albert Sans', 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
 
-  h1, h2, h3, h4 {
-    font-family: 'Outfit', 'Space Grotesk', sans-serif;
+  h1, h2 {
+    font-family: 'Alumni Sans', 'Outfit', sans-serif;
+  }
+
+  h3, h4 {
+    font-family: 'Outfit', 'Albert Sans', sans-serif;
   }
 
   .font-mono-data {
     font-family: 'JetBrains Mono', monospace;
   }
+
+  .font-wordmark {
+    font-family: 'Alumni Sans', sans-serif;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
 }
 
-/* Glassmorphism & High-Tech Card Tokens */
-.glass-card {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
+/* Impeccable Neo Kinpaku Surfaces & Panels */
+.ks-panel {
+  background: var(--ks-raised-lacquer);
+  border: 1px solid var(--ks-rule);
+  border-radius: 8px;
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8);
 }
 
-.glass-card-glow {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+.ks-panel-interactive {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ks-panel-interactive:hover {
+  border-color: var(--ks-rule-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 45px -10px rgba(245, 200, 66, 0.12);
 }
 
-.glass-card-interactive {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.glass-card-interactive:hover {
-  transform: translateY(-4px) scale(1.01);
-  border-color: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.25);
+.ks-panel-deep {
+  background: var(--ks-lacquer-deep);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* Glowing Neon Elements */
-.glow-emerald {
-  box-shadow: 0 0 35px -5px rgba(16, 185, 129, 0.35);
+/* Impeccable Kinpaku Gold & Patina Button Primitives */
+.ks-button-primary {
+  background: linear-gradient(135deg, #F5C842 0%, #E5B626 100%);
+  color: #0B0C0E;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid #FDE68A;
+  box-shadow: 0 6px 20px -4px rgba(245, 200, 66, 0.35);
+  transition: all 0.2s ease;
+}
+.ks-button-primary:hover {
+  background: #FDE68A;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px -4px rgba(245, 200, 66, 0.5);
 }
 
-.glow-gold {
-  box-shadow: 0 0 35px -5px rgba(245, 158, 11, 0.35);
+.ks-button-secondary {
+  background: transparent;
+  color: var(--ks-kinpaku-gold);
+  border: 1px solid var(--ks-rule-strong);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+.ks-button-secondary:hover {
+  background: rgba(245, 200, 66, 0.08);
+  border-color: var(--ks-kinpaku-gold);
 }
 
-.glow-purple {
-  box-shadow: 0 0 35px -5px rgba(139, 92, 246, 0.35);
+.ks-button-patina {
+  background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
+  color: #0B0C0E;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid #5EEAD4;
+  box-shadow: 0 6px 20px -4px rgba(20, 184, 166, 0.35);
+  transition: all 0.2s ease;
+}
+.ks-button-patina:hover {
+  background: #5EEAD4;
+  transform: translateY(-1px);
 }
 
-.glow-rose {
-  box-shadow: 0 0 35px -5px rgba(244, 63, 94, 0.35);
+/* Kinpaku & Patina Badges */
+.ks-badge-gold {
+  background: rgba(245, 200, 66, 0.12);
+  color: var(--ks-kinpaku-gold);
+  border: 1px solid rgba(245, 200, 66, 0.3);
 }
 
-/* Gradient Text Utilities */
-.gold-gradient-text {
-  background: linear-gradient(135deg, #FFFFFF 0%, #FBBF24 50%, #F59E0B 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.ks-badge-patina {
+  background: rgba(20, 184, 166, 0.12);
+  color: var(--ks-patina-text);
+  border: 1px solid var(--ks-rule-patina);
 }
 
-.emerald-gradient-text {
-  background: linear-gradient(135deg, #FFFFFF 0%, #34D399 50%, #10B981 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.ks-badge-vermilion {
+  background: rgba(244, 63, 94, 0.12);
+  color: var(--ks-vermilion);
+  border: 1px solid rgba(244, 63, 94, 0.3);
 }
 
-.purple-gradient-text {
-  background: linear-gradient(135deg, #FFFFFF 0%, #C084FC 50%, #8B5CF6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* Hairline Calibration Lines */
+.hairline-gold {
+  border-bottom: 1px solid var(--ks-rule);
 }
-
-.cyan-gradient-text {
-  background: linear-gradient(135deg, #FFFFFF 0%, #38BDF8 50%, #06B6D4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Shimmer Button Effect */
-.btn-shimmer {
-  position: relative;
-  overflow: hidden;
-}
-.btn-shimmer::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    60deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.25) 50%,
-    transparent 70%
-  );
-  transform: rotate(30deg);
-  animation: shimmer 3.5s infinite;
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%) rotate(30deg); }
-  100% { transform: translateX(100%) rotate(30deg); }
-}
-
-/* Pulsing Status Dot */
-.pulse-dot-emerald {
-  position: relative;
-}
-.pulse-dot-emerald::after {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.5);
-  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse-ring {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  50% { transform: scale(1.6); opacity: 0; }
-  100% { transform: scale(0.95); opacity: 0; }
-}
-
-/* Custom Ticker Animation */
-@keyframes ticker {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.animate-ticker {
-  display: inline-flex;
-  white-space: nowrap;
-  animation: ticker 30s linear infinite;
-}
-.animate-ticker:hover {
-  animation-play-state: paused;
+.hairline-strong {
+  border-bottom: 1px solid var(--ks-rule-strong);
 }
 
 /* Custom Scrollbar */
@@ -161,12 +158,12 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #030712;
+  background: var(--ks-lacquer-deep);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
-  border-radius: 4px;
+  background: var(--ks-graphite-2);
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--ks-kinpaku-gold);
 }
