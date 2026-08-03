@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Lock, PlusCircle, ShieldCheck, DollarSign, RefreshCw, XCircle, Bot, Zap, CheckCircle2, AlertTriangle, Cpu, Play, Key } from 'lucide-react';
-import type { P2POrder, MerchantProfile, CEXConnection, CEXOrder } from '../types';
+import React, { useState } from 'react';
+import { ShieldCheck, DollarSign, Bot, Zap, CheckCircle2, AlertTriangle, Cpu, Play, Key, RefreshCw } from 'lucide-react';
+import type { CEXConnection, CEXOrder } from '../types';
 import { playSuccessChime } from '../utils/audio';
 
 interface MerchantHubProps {
@@ -9,11 +9,7 @@ interface MerchantHubProps {
   writeContract: (fn: string, args?: any[], value?: bigint, loadingMsg?: string) => Promise<any>;
 }
 
-export const LenderDashboard: React.FC<MerchantHubProps> = ({
-  address,
-  readContract,
-  writeContract,
-}) => {
+export const LenderDashboard: React.FC<MerchantHubProps> = () => {
   // CEX API Connections
   const [cexList, setCexList] = useState<CEXConnection[]>([
     { id: 'binance', name: 'Binance P2P', logo: '🟡', connected: true, apiKey: 'bn_live_9f82...3a1e', todayVolumeUsdt: 6850, todayOrderCount: 27 },
@@ -93,67 +89,6 @@ export const LenderDashboard: React.FC<MerchantHubProps> = ({
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'COMPLETED_AUTO' | 'NEEDS_REVIEW' | 'FRAUD_BLOCKED'>('ALL');
   const [isSimulatingOrder, setIsSimulatingOrder] = useState(false);
 
-  // Form State
-  const [cryptoAmount, setCryptoAmount] = useState('100');
-  const [fiatAmount, setFiatAmount] = useState('2540000');
-  const [fiatCurrency, setFiatCurrency] = useState('VND');
-  const [bankName, setBankName] = useState('Vietcombank');
-  const [bankAccount, setBankAccount] = useState('9988776655');
-  const [accountHolder, setAccountHolder] = useState('TRIN THI NGAN');
-  const [refCode, setRefCode] = useState('TLENG-' + Math.random().toString(36).substring(2, 7).toUpperCase());
-
-  const [merchantOrders, setMerchantOrders] = useState<P2POrder[]>([]);
-  const [profile, setProfile] = useState<MerchantProfile | null>(null);
-
-  const fetchMerchantData = useCallback(async () => {
-    if (!address) return;
-    try {
-      const profData = await readContract('get_merchant_profile', [address]);
-      if (profData) {
-        setProfile({
-          name: profData.name || 'Merchant',
-          total_trades: Number(profData.total_trades || 0),
-          successful_releases: Number(profData.successful_releases || 0),
-          reputation_score: Number(profData.reputation_score || 100),
-        });
-      }
-
-      const marketInfo = await readContract('get_market_info');
-      const totalCount = Number(marketInfo?.total_orders || 0);
-
-      const myList: P2POrder[] = [];
-      for (let i = 1; i <= totalCount; i++) {
-        const ordData = await readContract('get_order', [String(i)]);
-        if (ordData && String(ordData.seller).toLowerCase() === address.toLowerCase()) {
-          myList.push({
-            order_id: String(i),
-            seller: String(ordData.seller || ''),
-            buyer: String(ordData.buyer || ''),
-            crypto_amount: String(ordData.crypto_amount || '0'),
-            fiat_amount: Number(ordData.fiat_amount || 0),
-            fiat_currency: String(ordData.fiat_currency || 'VND'),
-            bank_name: String(ordData.bank_name || ''),
-            bank_account: String(ordData.bank_account || ''),
-            account_holder: String(ordData.account_holder || ''),
-            ref_code: String(ordData.ref_code || ''),
-            status: ordData.status || 'LISTED',
-            buyer_deposit: String(ordData.buyer_deposit || '0'),
-            proof_url: String(ordData.proof_url || ''),
-            ai_verdict: ordData.ai_verdict || 'PENDING',
-            ai_reason: String(ordData.ai_reason || ''),
-          });
-        }
-      }
-      setMerchantOrders(myList);
-    } catch (err) {
-      console.error('Error fetching merchant data:', err);
-    }
-  }, [address, readContract]);
-
-  useEffect(() => {
-    fetchMerchantData();
-  }, [fetchMerchantData]);
-
   // Simulate Incoming CEX Order (e.g. 100 USDT on Binance P2P)
   const simulateIncomingCEXOrder = () => {
     setIsSimulatingOrder(true);
@@ -188,36 +123,6 @@ export const LenderDashboard: React.FC<MerchantHubProps> = ({
     setCexList(prev =>
       prev.map(c => (c.id === id ? { ...c, connected: !c.connected } : c))
     );
-  };
-
-  const handleCreateOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cryptoVal = Number(cryptoAmount);
-    const fiatVal = Number(fiatAmount);
-    if (isNaN(cryptoVal) || cryptoVal <= 0 || isNaN(fiatVal) || fiatVal <= 0) return;
-
-    const cryptoWei = BigInt(cryptoVal);
-    const res = await writeContract(
-      'create_sell_order',
-      [fiatVal, fiatCurrency, bankName, bankAccount, accountHolder, refCode],
-      cryptoWei,
-      `Locking ${cryptoVal} GEN in Escrow for Sell Order...`
-    );
-
-    if (res) {
-      fetchMerchantData();
-      setRefCode('TLENG-' + Math.random().toString(36).substring(2, 7).toUpperCase());
-    }
-  };
-
-  const handleCancelOrder = async (orderId: string) => {
-    const res = await writeContract(
-      'cancel_sell_order',
-      [orderId],
-      undefined,
-      `Cancelling Sell Order #${orderId} & refunding locked GEN...`
-    );
-    if (res) fetchMerchantData();
   };
 
   // Filtered Orders
@@ -342,7 +247,7 @@ export const LenderDashboard: React.FC<MerchantHubProps> = ({
           <div>
             <div className="text-xs text-slate-400 font-medium">Reputation Score</div>
             <div className="text-2xl font-black text-purple-300 font-mono-data">
-              {profile ? profile.reputation_score : 100} / 100
+              100 / 100
             </div>
             <div className="text-[10px] text-slate-400 font-mono-data">Verified Merchant Badge</div>
           </div>
@@ -437,178 +342,6 @@ export const LenderDashboard: React.FC<MerchantHubProps> = ({
               </div>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Lock Crypto & Create On-Chain Escrow Listing */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
-        <div className="lg:col-span-1 gl-violet-panel p-6 rounded-3xl space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-[#A855F7]/15 text-[#A855F7] border border-[#A855F7]/30">
-              <PlusCircle className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-white font-syne">Create On-Chain P2P Escrow Order</h3>
-              <p className="text-xs text-slate-400">Lock GEN into Escrow for GenLayer Network P2P trade.</p>
-            </div>
-          </div>
-
-          <form onSubmit={handleCreateOrder} className="space-y-3.5 pt-2">
-            <div>
-              <label className="block text-[11px] font-bold text-slate-300 mb-1 font-mono-data">
-                Crypto Amount to Escrow ($ GEN)
-              </label>
-              <input
-                type="number"
-                value={cryptoAmount}
-                onChange={e => setCryptoAmount(e.target.value)}
-                className="w-full bg-[#07040D] border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#A855F7]"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <div className="col-span-2">
-                <label className="block text-[11px] font-bold text-slate-300 mb-1 font-mono-data">Required Fiat</label>
-                <input
-                  type="number"
-                  value={fiatAmount}
-                  onChange={e => setFiatAmount(e.target.value)}
-                  className="w-full bg-[#07040D] border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#A855F7]"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-bold text-slate-300 mb-1 font-mono-data">Currency</label>
-                <select
-                  value={fiatCurrency}
-                  onChange={e => setFiatCurrency(e.target.value)}
-                  className="w-full bg-[#07040D] border border-slate-700/80 rounded-xl px-2 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#A855F7]"
-                >
-                  <option value="VND">VND</option>
-                  <option value="NGN">NGN</option>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-slate-300 mb-1 font-mono-data">Bank Name</label>
-              <input
-                type="text"
-                value={bankName}
-                onChange={e => setBankName(e.target.value)}
-                className="w-full bg-[#07040D] border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#A855F7]"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-300 mb-1 font-mono-data">Account Number</label>
-                <input
-                  type="text"
-                  value={bankAccount}
-                  onChange={e => setBankAccount(e.target.value)}
-                  className="w-full bg-[#07040D] border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#A855F7]"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-bold text-slate-300 mb-1 font-mono-data">Account Owner Name</label>
-                <input
-                  type="text"
-                  value={accountHolder}
-                  onChange={e => setAccountHolder(e.target.value)}
-                  className="w-full bg-[#07040D] border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#A855F7]"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-slate-300 mb-1 font-mono-data">
-                Required Transfer Memo Code
-              </label>
-              <input
-                type="text"
-                value={refCode}
-                onChange={e => setRefCode(e.target.value.toUpperCase())}
-                className="w-full bg-[#07040D] border border-[#A855F7]/60 rounded-xl px-3 py-2 text-xs text-[#E9D5FF] font-mono-data font-bold focus:outline-none"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="gl-btn-violet w-full py-3 text-xs flex items-center justify-center gap-2"
-            >
-              <Lock className="w-4 h-4" /> Lock Crypto & Publish Sell Order
-            </button>
-          </form>
-        </div>
-
-        {/* Merchant Active Escrow Listings */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-white font-syne">My Active On-Chain Listings</h3>
-            <button
-              onClick={fetchMerchantData}
-              className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-mono-data"
-            >
-              <RefreshCw className="w-3.5 h-3.5" /> Refresh
-            </button>
-          </div>
-
-          {merchantOrders.length === 0 ? (
-            <div className="gl-violet-panel p-12 rounded-3xl text-center text-xs text-slate-400">
-              You have no active P2P sell orders. Fill the form on the left to lock GEN into escrow!
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {merchantOrders.map(ord => (
-                <div
-                  key={ord.order_id}
-                  className="gl-violet-panel p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 font-mono-data"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-white">Order #{ord.order_id}</span>
-                      <span className="text-xs text-[#10B981] font-bold">{ord.crypto_amount} GEN</span>
-                      <span className="text-xs text-slate-400">• {ord.fiat_amount.toLocaleString()} {ord.fiat_currency}</span>
-                    </div>
-                    <div className="text-[11px] text-slate-400">
-                      Bank: {ord.bank_name} ({ord.bank_account}) • Memo: <span className="text-amber-400 font-bold">{ord.ref_code}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase ${
-                        ord.status === 'LISTED'
-                          ? 'gl-badge-violet'
-                          : ord.status === 'COMPLETED'
-                          ? 'gl-badge-[#10B981]'
-                          : 'gl-badge-rose'
-                      }`}
-                    >
-                      {ord.status}
-                    </span>
-
-                    {ord.status === 'LISTED' && (
-                      <button
-                        onClick={() => handleCancelOrder(ord.order_id)}
-                        className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 rounded-xl text-xs font-bold border border-rose-500/30 flex items-center gap-1 transition-all"
-                      >
-                        <XCircle className="w-3.5 h-3.5" /> Cancel & Refund
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>
