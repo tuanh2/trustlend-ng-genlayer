@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, DollarSign, Zap, CheckCircle2, AlertTriangle, Play, Key, RefreshCw, ArrowRightLeft, FileCheck } from 'lucide-react';
+import { DollarSign, Zap, CheckCircle2, AlertTriangle, Play, Key, RefreshCw, FileCheck } from 'lucide-react';
 import type { CEXConnection, CEXOrder } from '../types';
 import { playSuccessChime } from '../utils/audio';
 
@@ -10,7 +10,6 @@ interface MerchantHubProps {
 }
 
 export const LenderDashboard: React.FC<MerchantHubProps> = () => {
-  // CEX API Connections
   const [cexList, setCexList] = useState<CEXConnection[]>([
     { id: 'binance', name: 'Binance P2P', logo: '🟡', connected: true, apiKey: 'bn_live_9f82...3a1e', todayVolumeUsdt: 6850, todayOrderCount: 27 },
     { id: 'okx', name: 'OKX P2P', logo: '⬛', connected: true, apiKey: 'okx_live_4b77...8c99', todayVolumeUsdt: 4200, todayOrderCount: 16 },
@@ -18,7 +17,6 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
     { id: 'mexc', name: 'MEXC P2P', logo: '🟢', connected: false, apiKey: 'mexc_test_0000...0000', todayVolumeUsdt: 1200, todayOrderCount: 4 },
   ]);
 
-  // CEX Orders Stream State
   const [cexOrders, setCexOrders] = useState<CEXOrder[]>([
     {
       id: 'CEX-BN-9921',
@@ -34,7 +32,7 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
       status: 'COMPLETED_AUTO',
       aiScore: 99.8,
       timestamp: '19:14:02',
-      aiReason: 'Verified Vietcombank transfer 2,540,000 VND to account 9988776655 with memo TLENG-88F3A. Released on Binance API.',
+      aiReason: 'Verified Vietcombank transfer 2,540,000 VND to account 9988776655. Released on Binance API.',
     },
     {
       id: 'CEX-OKX-8842',
@@ -66,30 +64,13 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
       status: 'NEEDS_REVIEW',
       aiScore: 45.2,
       timestamp: '18:58:12',
-      aiReason: '⚠️ Mismatched account holder name on payment proof slip. Flagged for manual merchant verification.',
-    },
-    {
-      id: 'CEX-BN-9890',
-      exchange: 'Binance P2P',
-      pair: 'USDT/VND',
-      cryptoAmount: 300,
-      fiatAmount: 7620000,
-      currency: 'VND',
-      buyerName: 'PHAM MINH D',
-      bankName: 'Vietcombank',
-      accountNumber: '9988776655',
-      refCode: 'TLENG-11B34',
-      status: 'COMPLETED_AUTO',
-      aiScore: 99.5,
-      timestamp: '18:45:30',
-      aiReason: 'Verified Vietcombank receipt 7,620,000 VND. Released 300 USDT on Binance API.',
+      aiReason: '⚠️ Mismatched account holder name on payment proof. Flagged for merchant review.',
     },
   ]);
 
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'COMPLETED_AUTO' | 'NEEDS_REVIEW' | 'FRAUD_BLOCKED'>('ALL');
   const [isSimulatingOrder, setIsSimulatingOrder] = useState(false);
 
-  // Simulate Incoming CEX Order (e.g. 100 USDT on Binance P2P)
   const simulateIncomingCEXOrder = () => {
     setIsSimulatingOrder(true);
     const newId = `CEX-BN-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -110,12 +91,12 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
         status: 'COMPLETED_AUTO',
         aiScore: 99.9,
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        aiReason: `Scanned Vietcombank E-Receipt. 2,540,000 VND received for memo ${newRef}. Released 100 USDT on Binance P2P API.`,
+        aiReason: `Scanned Vietcombank E-Receipt. 2,540,000 VND received for memo ${newRef}. Released 100 USDT on Binance API.`,
       };
 
       setCexOrders(prev => [newOrd, ...prev]);
       setIsSimulatingOrder(false);
-      playSuccessChime(); // Play Ting-Ting sound!
+      playSuccessChime();
     }, 2000);
   };
 
@@ -125,7 +106,6 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
     );
   };
 
-  // Filtered Orders
   const filteredCexOrders = activeFilter === 'ALL'
     ? cexOrders
     : cexOrders.filter(o => o.status === activeFilter);
@@ -136,200 +116,149 @@ export const LenderDashboard: React.FC<MerchantHubProps> = () => {
   const needsReviewCount = cexOrders.filter(o => o.status === 'NEEDS_REVIEW').length;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Merchant Header Banner */}
-      <div className="ks-panel p-6 md:p-8 rounded-sm space-y-6 relative overflow-hidden">
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Header Banner */}
+      <div className="min-card p-8 space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xs bg-[#F5C842]/10 text-[#F5C842] text-xs font-mono-data font-medium border border-[#F5C842]/25">
-              <ArrowRightLeft className="w-4 h-4 text-[#F5C842]" /> Merchant P2P Escrow Hub
-            </div>
-            <h1 className="text-3xl md:text-4xl text-white font-light tracking-tight">
-              Multi-Exchange P2P Escrow Automation
+          <div className="space-y-1 max-w-xl">
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              Merchant P2P Escrow Hub
             </h1>
-            <p className="text-xs text-[#9CA3AF] leading-relaxed">
-              Connect your Binance, OKX, Bybit & MEXC P2P API keys. GenLayer Intelligent Contracts automatically verify buyer bank payments in real-time and release USDT/Crypto <strong>without manual merchant delays!</strong>
+            <p className="text-xs text-[#9CA3AF]">
+              Connect Binance, OKX, Bybit & MEXC P2P APIs. Automated real-time payment verification and instant crypto release.
             </p>
           </div>
 
           <button
             onClick={simulateIncomingCEXOrder}
             disabled={isSimulatingOrder}
-            className="ks-button-primary px-5 py-2.5 text-xs font-semibold flex items-center gap-2 shrink-0 disabled:opacity-50"
+            className="min-btn-primary px-5 py-2.5 text-xs flex items-center gap-2 shrink-0 disabled:opacity-50"
           >
             {isSimulatingOrder ? (
               <>
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Receiving CEX Order...
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Receiving Order...
               </>
             ) : (
               <>
-                <Play className="w-3.5 h-3.5 fill-[#090A0D]" /> ⚡ Simulate Incoming Binance 100 USDT Order
+                <Play className="w-3.5 h-3.5 fill-black" /> ⚡ Simulate 100 USDT Order
               </>
             )}
           </button>
         </div>
 
-        {/* CEX API Connection Badges */}
-        <div className="space-y-2 pt-2 border-t border-[#F5C842]/16 font-mono-data">
-          <div className="text-xs font-medium text-[#9CA3AF] flex items-center gap-2">
-            <Key className="w-3.5 h-3.5 text-[#F5C842]" /> Connected Exchange P2P APIs:
+        {/* CEX Badges */}
+        <div className="space-y-2 pt-2 border-t border-[#1F2026] font-mono-data">
+          <div className="text-xs text-[#9CA3AF] flex items-center gap-2">
+            <Key className="w-3.5 h-3.5 text-[#F59E0B]" /> Exchange APIs:
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {cexList.map(cex => (
               <div
                 key={cex.id}
                 onClick={() => toggleCexConnection(cex.id)}
-                className={`p-3 rounded-xs border cursor-pointer transition-all flex items-center justify-between text-xs ${
+                className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between text-xs ${
                   cex.connected
-                    ? 'border-[#F5C842]/40 bg-[#F5C842]/10 text-white'
-                    : 'border-white/10 bg-[#040507] text-[#6B7280] hover:border-white/20'
+                    ? 'border-[#F59E0B] bg-[#141519] text-white'
+                    : 'border-[#1F2026] bg-[#050507] text-[#6B7280]'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <span>{cex.logo}</span>
                   <div>
-                    <div className="font-bold text-white text-xs">{cex.name}</div>
-                    <div className="text-[10px] text-[#9CA3AF]">{cex.connected ? cex.apiKey : 'Disconnected'}</div>
+                    <div className="font-semibold text-white text-xs">{cex.name}</div>
+                    <div className="text-[10px] text-[#9CA3AF]">{cex.connected ? 'Active' : 'Offline'}</div>
                   </div>
                 </div>
-                <span className={`w-2 h-2 rounded-full ${cex.connected ? 'bg-[#14B8A6]' : 'bg-[#6B7280]'}`}></span>
+                <span className={`w-2 h-2 rounded-full ${cex.connected ? 'bg-[#10B981]' : 'bg-[#6B7280]'}`}></span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Today's Sales & Performance Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="ks-panel p-5 rounded-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xs bg-[#F5C842]/10 text-[#F5C842] flex items-center justify-center border border-[#F5C842]/25 shrink-0">
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="min-card p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-[#141519] border border-[#1F2026] text-[#F59E0B] flex items-center justify-center shrink-0">
             <DollarSign className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-[#9CA3AF] font-medium">Today's Sales Volume</div>
-            <div className="text-2xl font-bold text-white font-mono-data">
-              ${totalUsdtToday.toLocaleString()} USDT
-            </div>
-            <div className="text-[10px] text-[#14B8A6] font-mono-data">≈ {totalVndToday.toLocaleString()} VND</div>
+            <div className="text-xs text-[#9CA3AF]">Sales Volume Today</div>
+            <div className="text-xl font-bold text-white font-mono-data">${totalUsdtToday.toLocaleString()} USDT</div>
+            <div className="text-[10px] text-[#10B981] font-mono-data">≈ {totalVndToday.toLocaleString()} VND</div>
           </div>
         </div>
 
-        <div className="ks-panel p-5 rounded-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xs bg-[#14B8A6]/10 text-[#14B8A6] flex items-center justify-center border border-[#14B8A6]/25 shrink-0">
+        <div className="min-card p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-[#141519] border border-[#1F2026] text-[#10B981] flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-[#9CA3AF] font-medium">Auto-Settled Today</div>
-            <div className="text-2xl font-bold text-[#14B8A6] font-mono-data">
-              {autoCompletedCount} Trades
-            </div>
-            <div className="text-[10px] text-[#9CA3AF] font-mono-data">100% Zero Seller Wait</div>
+            <div className="text-xs text-[#9CA3AF]">Auto-Released Trades</div>
+            <div className="text-xl font-bold text-[#10B981] font-mono-data">{autoCompletedCount} Orders</div>
+            <div className="text-[10px] text-[#9CA3AF] font-mono-data">100% Automated</div>
           </div>
         </div>
 
-        <div className="ks-panel p-5 rounded-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xs bg-amber-400/10 text-amber-400 flex items-center justify-center border border-amber-400/25 shrink-0">
+        <div className="min-card p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-[#141519] border border-[#1F2026] text-amber-400 flex items-center justify-center shrink-0">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-[#9CA3AF] font-medium">Requires Manual Review</div>
-            <div className="text-2xl font-bold text-amber-400 font-mono-data">
-              {needsReviewCount} Order
-            </div>
-            <div className="text-[10px] text-[#9CA3AF] font-mono-data">Flagged Mismatched Proof</div>
-          </div>
-        </div>
-
-        <div className="ks-panel p-5 rounded-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xs bg-[#F5C842]/10 text-[#F5C842] flex items-center justify-center border border-[#F5C842]/25 shrink-0">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xs text-[#9CA3AF] font-medium">Reputation Score</div>
-            <div className="text-2xl font-bold text-white font-mono-data">
-              100 / 100
-            </div>
-            <div className="text-[10px] text-[#9CA3AF] font-mono-data">Verified Merchant Badge</div>
+            <div className="text-xs text-[#9CA3AF]">Manual Review Flagged</div>
+            <div className="text-xl font-bold text-amber-400 font-mono-data">{needsReviewCount} Order</div>
+            <div className="text-[10px] text-[#9CA3AF] font-mono-data">Mismatched Slip</div>
           </div>
         </div>
       </div>
 
-      {/* CEX Orders Stream & Filters */}
+      {/* Stream */}
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="text-2xl font-light text-white flex items-center gap-2">
-            <Zap className="w-5 h-5 text-[#F5C842]" /> Real-Time CEX P2P Order Stream
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+            <Zap className="w-4 h-4 text-[#F59E0B]" /> Real-Time P2P Stream
           </h2>
 
-          {/* Filter Tabs */}
-          <div className="flex items-center gap-1 bg-[#040507] p-1 rounded-xs border border-[#F5C842]/16 font-mono-data text-xs">
+          <div className="flex items-center gap-1 bg-[#0E0F12] p-1 rounded-lg border border-[#1F2026] font-mono-data text-xs">
             <button
               onClick={() => setActiveFilter('ALL')}
-              className={`px-3 py-1 rounded-xs font-medium transition-all ${activeFilter === 'ALL' ? 'bg-[#F5C842] text-[#090A0D] font-bold' : 'text-[#9CA3AF] hover:text-white'}`}
+              className={`px-3 py-1 rounded-md transition-all ${activeFilter === 'ALL' ? 'bg-[#1F2026] text-white font-semibold' : 'text-[#9CA3AF]'}`}
             >
-              All Trades ({cexOrders.length})
+              All ({cexOrders.length})
             </button>
             <button
               onClick={() => setActiveFilter('COMPLETED_AUTO')}
-              className={`px-3 py-1 rounded-xs font-medium transition-all ${activeFilter === 'COMPLETED_AUTO' ? 'bg-[#14B8A6] text-[#090A0D] font-bold' : 'text-[#9CA3AF] hover:text-white'}`}
+              className={`px-3 py-1 rounded-md transition-all ${activeFilter === 'COMPLETED_AUTO' ? 'bg-[#10B981] text-black font-semibold' : 'text-[#9CA3AF]'}`}
             >
               Auto-Released ({autoCompletedCount})
-            </button>
-            <button
-              onClick={() => setActiveFilter('NEEDS_REVIEW')}
-              className={`px-3 py-1 rounded-xs font-medium transition-all ${activeFilter === 'NEEDS_REVIEW' ? 'bg-amber-400 text-[#090A0D] font-bold' : 'text-[#9CA3AF] hover:text-white'}`}
-            >
-              Needs Review ({needsReviewCount})
             </button>
           </div>
         </div>
 
-        {/* CEX Orders Stream Cards */}
-        <div className="space-y-3">
+        <div className="space-y-3 font-mono-data">
           {filteredCexOrders.map(ord => (
-            <div
-              key={ord.id}
-              className="ks-panel p-5 rounded-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4 font-mono-data"
-            >
-              <div className="space-y-2">
+            <div key={ord.id} className="min-card p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="space-y-1.5">
                 <div className="flex items-center gap-3">
-                  <span className="ks-badge-gold px-2.5 py-0.5 rounded-xs font-medium text-xs">
-                    {ord.exchange}
-                  </span>
+                  <span className="min-badge-amber px-2 py-0.5 rounded text-xs font-semibold">{ord.exchange}</span>
                   <span className="text-sm font-bold text-white">{ord.id}</span>
-                  <span className="text-xs text-[#14B8A6] font-bold">{ord.cryptoAmount} USDT</span>
+                  <span className="text-xs text-[#10B981] font-bold">{ord.cryptoAmount} USDT</span>
                   <span className="text-xs text-[#9CA3AF]">• {ord.fiatAmount.toLocaleString()} {ord.currency}</span>
-                  <span className="text-[10px] text-[#6B7280] ml-auto lg:ml-0">{ord.timestamp}</span>
                 </div>
 
-                <div className="text-xs text-[#E5E7EB]">
-                  Buyer: <span className="font-bold text-white">{ord.buyerName}</span> • Bank: <span className="font-bold text-white">{ord.bankName}</span> ({ord.accountNumber}) • Reference: <span className="text-amber-400 font-bold">{ord.refCode}</span>
+                <div className="text-xs text-[#9CA3AF]">
+                  Buyer: <span className="text-white">{ord.buyerName}</span> • Bank: <span className="text-white">{ord.bankName}</span> • Memo: <span className="text-[#F59E0B]">{ord.refCode}</span>
                 </div>
 
-                <div className="text-[11px] text-[#9CA3AF] bg-[#040507] p-2.5 rounded-xs border border-white/5 flex items-center gap-2">
-                  <FileCheck className="w-3.5 h-3.5 text-[#F5C842] shrink-0" />
+                <div className="text-[11px] text-[#9CA3AF] min-card-inset p-2 flex items-center gap-2">
+                  <FileCheck className="w-3.5 h-3.5 text-[#F59E0B] shrink-0" />
                   <span>{ord.aiReason}</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0">
-                <div className="text-right">
-                  <div className="text-[10px] text-[#9CA3AF]">Verification Score</div>
-                  <div className={`text-sm font-bold ${ord.aiScore > 90 ? 'text-[#14B8A6]' : 'text-amber-400'}`}>
-                    {ord.aiScore}% Match
-                  </div>
-                </div>
-
-                <span
-                  className={`px-3 py-1 rounded-xs text-xs font-bold uppercase ${
-                    ord.status === 'COMPLETED_AUTO'
-                      ? 'ks-badge-patina'
-                      : ord.status === 'NEEDS_REVIEW'
-                      ? 'ks-badge-gold'
-                      : 'ks-badge-vermilion'
-                  }`}
-                >
-                  {ord.status === 'COMPLETED_AUTO' ? '✓ Auto-Released' : '⚠️ Needs Review'}
+                <span className={`px-3 py-1 rounded text-xs font-semibold ${ord.status === 'COMPLETED_AUTO' ? 'min-badge-emerald' : 'min-badge-amber'}`}>
+                  {ord.status === 'COMPLETED_AUTO' ? '✓ Released' : '⚠️ Review'}
                 </span>
               </div>
             </div>

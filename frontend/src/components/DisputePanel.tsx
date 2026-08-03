@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ShieldAlert, CheckCircle2, FileText, Search, ShieldCheck, FileCheck } from 'lucide-react';
+import { FileText, Search, FileCheck } from 'lucide-react';
 import type { P2POrder } from '../types';
 
 interface DisputeCenterProps {
@@ -56,107 +56,61 @@ export const DisputePanel: React.FC<DisputeCenterProps> = ({
     : orders;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header Info */}
-      <div className="ks-panel p-6 md:p-8 rounded-sm relative overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xs bg-[#F5C842]/10 text-[#F5C842] text-xs font-mono-data font-medium border border-[#F5C842]/25">
-              <ShieldCheck className="w-3.5 h-3.5" /> Intelligent Escrow Audit Court
-            </div>
-            <h1 className="text-3xl md:text-4xl text-white font-light tracking-tight">
-              Payment Verification & Anti-Fraud Audit Logs
-            </h1>
-            <p className="text-xs text-[#9CA3AF] leading-relaxed">
-              Transparent, immutable audit records of GenLayer validator decisions. Review payment verification prompts, bank receipt audit trails, and 10% Security Deposit slash penalties.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-xs bg-[#040507] border border-[#F5C842]/16 space-y-2 shrink-0 font-mono-data text-xs">
-            <div className="text-[#9CA3AF] flex items-center justify-between gap-4">
-              <span>Audited Trades:</span>
-              <span className="text-[#F5C842] font-bold">{orders.length} Logs</span>
-            </div>
-            <div className="text-[#9CA3AF] flex items-center justify-between gap-4">
-              <span>Consensus Engine:</span>
-              <span className="text-[#14B8A6] font-bold">Optimistic Democracy</span>
-            </div>
-          </div>
+      <div className="min-card p-8 space-y-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            Audit & Verification Logs
+          </h1>
+          <p className="text-xs text-[#9CA3AF]">
+            Transparent audit logs of bank payment verification, optimistic consensus verdicts, and security bond slash records.
+          </p>
         </div>
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-[#6B7280] absolute left-3.5 top-2.5" />
-          <input
-            type="text"
-            value={searchId}
-            onChange={e => setSearchId(e.target.value)}
-            placeholder="Search by Order ID or Reference Code (e.g. TLENG)..."
-            className="w-full bg-[#040507] border border-[#F5C842]/16 rounded-xs pl-9 pr-4 py-2 text-xs text-white font-mono-data focus:outline-none focus:border-[#F5C842]"
-          />
-        </div>
+      <div className="relative max-w-md">
+        <Search className="w-4 h-4 text-[#6B7280] absolute left-3.5 top-2.5" />
+        <input
+          type="text"
+          value={searchId}
+          onChange={e => setSearchId(e.target.value)}
+          placeholder="Search Order ID or Memo Code..."
+          className="w-full bg-[#0E0F12] border border-[#1F2026] rounded-lg pl-9 pr-4 py-2 text-xs text-white font-mono-data focus:outline-none"
+        />
       </div>
 
       {/* Audit Logs List */}
-      <div className="space-y-4">
+      <div className="space-y-3 font-mono-data">
         {filteredOrders.length === 0 ? (
-          <div className="ks-panel p-12 rounded-sm text-center space-y-3">
-            <FileText className="w-10 h-10 text-[#6B7280] mx-auto" />
-            <h3 className="text-lg font-bold text-white">No Payment Audit Logs Available</h3>
-            <p className="text-xs text-[#9CA3AF] max-w-md mx-auto">
-              Submit payment proof on an active trade in the P2P Escrow Market to generate live validator verification logs!
+          <div className="min-card p-12 text-center space-y-2">
+            <FileText className="w-8 h-8 text-[#6B7280] mx-auto" />
+            <div className="text-sm font-semibold text-white">No Audit Logs Available</div>
+            <p className="text-xs text-[#9CA3AF] max-w-sm mx-auto">
+              Submit payment proof on active trades to generate live consensus verification logs.
             </p>
           </div>
         ) : (
           filteredOrders.map(ord => (
-            <div
-              key={ord.order_id}
-              className="ks-panel p-6 rounded-sm space-y-4"
-            >
+            <div key={ord.order_id} className="min-card p-5 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-3 font-mono-data">
-                  <span className="px-2.5 py-0.5 rounded-xs bg-[#040507] text-[#E5E7EB] text-xs font-bold border border-white/10">
-                    Order #{ord.order_id}
-                  </span>
-                  <span className="text-xs text-[#9CA3AF]">
-                    Reference: <span className="text-amber-400 font-bold">{ord.ref_code}</span>
-                  </span>
-                  <span className="text-xs text-[#9CA3AF]">
-                    Amount: <span className="text-white font-bold">{ord.fiat_amount.toLocaleString()} {ord.fiat_currency}</span> ({ord.crypto_amount} GEN)
-                  </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-white">Order #{ord.order_id}</span>
+                  <span className="text-xs text-[#9CA3AF]">Memo: <span className="text-[#F59E0B] font-bold">{ord.ref_code}</span></span>
+                  <span className="text-xs text-[#9CA3AF]">{ord.fiat_amount.toLocaleString()} {ord.fiat_currency} ({ord.crypto_amount} GEN)</span>
                 </div>
 
-                <div className="flex items-center gap-2 font-mono-data">
-                  <span
-                    className={`px-3 py-1 rounded-xs text-xs font-bold uppercase flex items-center gap-1.5 ${
-                      ord.ai_verdict === 'MATCHED'
-                        ? 'ks-badge-patina'
-                        : ord.ai_verdict === 'FRAUD'
-                        ? 'ks-badge-vermilion'
-                        : 'ks-badge-gold'
-                    }`}
-                  >
-                    {ord.ai_verdict === 'MATCHED' && <CheckCircle2 className="w-3.5 h-3.5 text-[#14B8A6]" />}
-                    {ord.ai_verdict === 'FRAUD' && <ShieldAlert className="w-3.5 h-3.5 text-[#EF4444]" />}
-                    Verdict: {ord.ai_verdict}
-                  </span>
-                </div>
+                <span className={`px-3 py-1 rounded text-xs font-semibold ${ord.ai_verdict === 'MATCHED' ? 'min-badge-emerald' : 'min-badge-red'}`}>
+                  Verdict: {ord.ai_verdict}
+                </span>
               </div>
 
-              {/* Reasoning Callout Box */}
-              <div className="p-4 rounded-xs bg-[#040507] border border-white/10 space-y-2 text-xs">
-                <div className="flex items-center gap-1.5 text-[#F5C842] font-bold">
-                  <FileCheck className="w-3.5 h-3.5 text-[#F5C842]" /> Consensus Verification Summary:
+              <div className="min-card-inset p-3 space-y-1 text-xs">
+                <div className="flex items-center gap-1.5 text-[#F59E0B] font-semibold">
+                  <FileCheck className="w-3.5 h-3.5" /> Verification Summary:
                 </div>
-                <p className="text-[#E5E7EB] font-mono-data leading-relaxed bg-[#101216] p-3 rounded-xs border border-white/5">
-                  "{ord.ai_reason}"
-                </p>
-                <div className="flex items-center justify-between text-[11px] text-[#6B7280] pt-1 font-mono-data">
-                  <span>Proof Link: {ord.proof_url}</span>
-                  <span>{ord.ai_verdict === 'FRAUD' ? '⚠️ 10% Security Bond Slashed to Seller' : '✓ Escrow Released to Buyer'}</span>
-                </div>
+                <div className="text-[#E5E7EB]">{ord.ai_reason}</div>
               </div>
             </div>
           ))
