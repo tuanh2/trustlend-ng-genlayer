@@ -22,3 +22,31 @@ export interface MerchantProfile {
   successful_releases: number;
   reputation_score: number;
 }
+
+export interface CEXConnection {
+  id: string;
+  name: string;
+  logo: string;
+  connected: boolean;
+  apiKey: string;
+  todayVolumeUsdt: number;
+  todayOrderCount: number;
+}
+
+export interface CEXOrder {
+  id: string;
+  exchange: 'Binance P2P' | 'OKX P2P' | 'Bybit P2P' | 'MEXC P2P' | 'Bitget P2P';
+  pair: string; // e.g. USDT/VND
+  cryptoAmount: number;
+  fiatAmount: number;
+  currency: string;
+  buyerName: string;
+  bankName: string;
+  accountNumber: string;
+  refCode: string;
+  status: 'COMPLETED_AUTO' | 'NEEDS_REVIEW' | 'FRAUD_BLOCKED' | 'PROCESSING';
+  aiScore: number;
+  timestamp: string;
+  aiReason: string;
+  proofThumbnail?: string;
+}
