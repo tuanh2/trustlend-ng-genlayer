@@ -1,417 +1,363 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sparkles, FileText, Send, CheckCircle2, AlertCircle, RefreshCw, ExternalLink, HelpCircle, Zap } from 'lucide-react';
-import type { Loan, BorrowerProfile } from '../types';
-import { TrustScoreBadge } from './TrustScoreBadge';
+import { ShoppingCart, ShieldCheck, AlertOctagon, CheckCircle2, Copy, Sparkles, ExternalLink, ArrowRight } from 'lucide-react';
+import type { P2POrder } from '../types';
 
-interface BorrowerDashboardProps {
+interface P2PMarketProps {
   address: string;
   readContract: (fn: string, args?: any[]) => Promise<any>;
   writeContract: (fn: string, args?: any[], value?: bigint, loadingMsg?: string) => Promise<any>;
 }
 
-export const BorrowerDashboard: React.FC<BorrowerDashboardProps> = ({
+export const BorrowerDashboard: React.FC<P2PMarketProps> = ({
   address,
   readContract,
   writeContract,
 }) => {
-  const [name, setName] = useState('Amina Traders');
-  const [phone, setPhone] = useState('+234 802 345 6789');
-  const [shopUrl, setShopUrl] = useState('https://jumia.com.ng/shop/amina-electronics');
-  const [evidenceUrl, setEvidenceUrl] = useState('https://raw.githubusercontent.com/evidence/jumia_receipt.png');
-  const [amount, setAmount] = useState('100');
-  const [duration, setDuration] = useState('30');
+  const [orders, setOrders] = useState<P2POrder[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<P2POrder | null>(null);
+  const [proofUrl, setProofUrl] = useState('');
+  const [copiedMemo, setCopiedMemo] = useState(false);
 
-  const [trustScore, setTrustScore] = useState<number>(50);
-  const [profile, setProfile] = useState<BorrowerProfile | null>(null);
-  const [loans, setLoans] = useState<Loan[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  // Preset Sample Bank Proofs for Instant Demonstration
+  const sampleProofs = [
+    {
+      label: '🏦 Vietcombank E-Receipt (Valid Match)',
+      url: 'https://vcb.com.vn/verify?tx=987654321',
+      desc: 'Valid official Vietcombank E-Receipt link matching target account & memo.',
+      type: 'valid',
+    },
+    {
+      label: '💳 Moniepoint POS Slip (Valid Match)',
+      url: 'https://moniepoint.com/receipt/MP-998877',
+      desc: 'Valid POS digital receipt matching transfer amount and reference code.',
+      type: 'valid',
+    },
+    {
+      label: '⚠️ Tampered / Fake Receipt (Triggers 10% Slash)',
+      url: 'https://fake-receipts.com/tampered-slip.png',
+      desc: 'Invalid or photoshopped receipt URL. AI flags FRAUD and slashes 10% deposit.',
+      type: 'fraud',
+    },
+  ];
 
-  const fetchBorrowerData = useCallback(async () => {
-    if (!address) return;
-    setLoading(true);
+  const fetchOrders = useCallback(async () => {
     try {
-      const score = await readContract('get_trust_score', [address]);
-      if (score !== null) setTrustScore(Number(score));
+      const marketInfo = await readContract('get_market_info');
+      const totalCount = Number(marketInfo?.total_orders || 0);
 
-      const profData = await readContract('get_borrower_profile', [address]);
-      if (profData) {
-        setProfile({
-          name: profData.name || '',
-          phone: profData.phone || '',
-          shop_url: profData.shop_url || '',
-          evidence_urls: profData.evidence_urls || [],
-          total_borrowed: String(profData.total_borrowed || '0'),
-          total_repaid: String(profData.total_repaid || '0'),
-          is_verified: Boolean(profData.is_verified),
-        });
-      }
-
-      const poolInfo = await readContract('get_pool_info');
-      const fetchedLoans: Loan[] = [];
-      if (poolInfo && poolInfo.total_loans) {
-        const count = Number(poolInfo.total_loans);
-        for (let i = 1; i <= count; i++) {
-          const lData = await readContract('get_loan', [String(i)]);
-          if (lData && lData.borrower && lData.borrower.toLowerCase() === address.toLowerCase()) {
-            fetchedLoans.push({
-              id: String(i),
-              borrower: lData.borrower,
-              lender: lData.lender,
-              principal: String(lData.principal),
-              interest_rate: Number(lData.interest_rate),
-              due_date: Number(lData.due_date),
-              status: lData.status,
-              evidence_url: lData.evidence_url,
-              ai_verdict: lData.ai_verdict,
-              ai_reason: lData.ai_reason,
-              dispute_evidence: lData.dispute_evidence,
-              dispute_verdict: lData.dispute_verdict,
-            });
-          }
+      const fetchedList: P2POrder[] = [];
+      for (let i = 1; i <= totalCount; i++) {
+        const ordData = await readContract('get_order', [String(i)]);
+        if (ordData) {
+          fetchedList.push({
+            order_id: String(i),
+            seller: String(ordData.seller || ''),
+            buyer: String(ordData.buyer || ''),
+            crypto_amount: String(ordData.crypto_amount || '0'),
+            fiat_amount: Number(ordData.fiat_amount || 0),
+            fiat_currency: String(ordData.fiat_currency || 'VND'),
+            bank_name: String(ordData.bank_name || ''),
+            bank_account: String(ordData.bank_account || ''),
+            account_holder: String(ordData.account_holder || ''),
+            ref_code: String(ordData.ref_code || ''),
+            status: ordData.status || 'LISTED',
+            buyer_deposit: String(ordData.buyer_deposit || '0'),
+            proof_url: String(ordData.proof_url || ''),
+            ai_verdict: ordData.ai_verdict || 'PENDING',
+            ai_reason: String(ordData.ai_reason || ''),
+          });
         }
       }
-      setLoans(fetchedLoans);
+      setOrders(fetchedList);
     } catch (err) {
-      console.error('Error fetching borrower data:', err);
-    } finally {
-      setLoading(false);
+      console.error('Error fetching P2P orders:', err);
     }
-  }, [address, readContract]);
+  }, [readContract]);
 
   useEffect(() => {
-    fetchBorrowerData();
-  }, [fetchBorrowerData]);
+    fetchOrders();
+  }, [fetchOrders]);
 
-  const handleApply = async (e: React.FormEvent) => {
+  // Initiate Buy with 10% Security Deposit
+  const handleInitiateBuy = async (order: P2POrder) => {
+    setSelectedOrder(order);
+    const bondWei = (BigInt(order.crypto_amount) * 1000n) / 10000n; // 10% bond
+    await writeContract(
+      'initiate_buy_order',
+      [order.order_id],
+      bondWei,
+      `Locking 10% Security Deposit (${bondWei} GEN) for Order #${order.order_id}...`
+    );
+    fetchOrders();
+  };
+
+  // Submit Bank Payment Proof for AI Release
+  const handleSubmitProof = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone || !shopUrl || !evidenceUrl) {
-      alert('Please fill out all loan application fields.');
-      return;
-    }
+    if (!selectedOrder || !proofUrl) return;
 
-    const numAmt = Number(amount);
-    if (isNaN(numAmt) || numAmt <= 0) {
-      alert('Invalid loan amount.');
-      return;
-    }
-
-    const res = await writeContract(
-      'apply_for_loan',
-      [name, phone, shopUrl, evidenceUrl, numAmt, Number(duration)],
+    await writeContract(
+      'submit_payment_proof',
+      [selectedOrder.order_id, proofUrl],
       undefined,
-      'Submitting application to GenLayer AI Underwriter...'
+      `GenLayer AI Consensus verifying bank proof & releasing escrow...`
     );
-
-    if (res) {
-      fetchBorrowerData();
-    }
+    fetchOrders();
+    setSelectedOrder(null);
+    setProofUrl('');
   };
 
-  const handleRepay = async (loan: Loan) => {
-    const principalWei = BigInt(loan.principal);
-    const interestWei = (principalWei * BigInt(loan.interest_rate)) / BigInt(10000);
-    const totalDue = principalWei + interestWei;
-
-    const res = await writeContract(
-      'repay_loan',
-      [loan.id],
-      totalDue,
-      `Repaying Loan #${loan.id}...`
-    );
-
-    if (res) {
-      fetchBorrowerData();
-    }
-  };
-
-  const fillSamplePreset = (presetType: 'jumia' | 'moniepoint' | 'utility') => {
-    if (presetType === 'jumia') {
-      setName('Amina Electronics Store');
-      setShopUrl('https://jumia.com.ng/shop/amina-electronics');
-      setEvidenceUrl('https://raw.githubusercontent.com/evidence/jumia_turnover_proof.png');
-      setAmount('150');
-    } else if (presetType === 'moniepoint') {
-      setName('Chukwuma Provisions');
-      setShopUrl('https://moniepoint.com/merchant/chukwuma-shop');
-      setEvidenceUrl('https://raw.githubusercontent.com/evidence/pos_monthly_statement.png');
-      setAmount('250');
-    } else {
-      setName('Kano Textile Mart');
-      setShopUrl('https://jiji.ng/kano/textile-mart');
-      setEvidenceUrl('https://raw.githubusercontent.com/evidence/kano_utility_bill.png');
-      setAmount('100');
-    }
+  const copyMemo = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedMemo(true);
+    setTimeout(() => setCopiedMemo(false), 2000);
   };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Top Banner & Reputation Gauge */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 glass-card p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
-          <div>
-            <div className="flex items-center gap-2.5 mb-2">
-              <span className="p-2 rounded-xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 text-emerald-400 border border-emerald-500/30">
-                <Sparkles className="w-5 h-5" />
-              </span>
-              <div>
-                <h2 className="text-xl font-bold text-white tracking-wide">AI Subjective Credit Underwriting</h2>
-                <p className="text-xs text-slate-400">GenLayer Optimistic Democracy Consensus Engine</p>
-              </div>
+      {/* Banner / Info Header */}
+      <div className="glass-card p-6 rounded-3xl border border-emerald-500/20 bg-gradient-to-r from-emerald-950/30 via-slate-900/40 to-purple-950/30 relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20">
+              <Sparkles className="w-3.5 h-3.5" /> Instant AI Bank Proof Verification
             </div>
-            <p className="text-sm text-slate-300 leading-relaxed mt-3">
-              No bank account or credit history needed. Upload proof of real economic activity (Jumia/Jiji store pages, utility bills, Moniepoint POS statements). GenLayer AI validators render web data on-chain and disburse microcredit instantly.
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white font-display">
+              Buy Crypto with Fiat (P2P Escrow)
+            </h2>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Pay via Bank Transfer, upload your payment receipt URL, and GenLayer AI validators will verify transaction details to <strong>instantly release escrowed Crypto</strong> to your wallet.
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 mt-6 pt-4 border-t border-white/5 text-xs">
-            <div className="flex items-center gap-2 text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Zero Bank History</span>
+          <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/10 space-y-2 shrink-0 font-mono-data text-xs">
+            <div className="text-slate-400 flex items-center justify-between gap-4">
+              <span>Security Bond Ratio:</span>
+              <span className="text-amber-400 font-bold">10% Deposit</span>
             </div>
-            <div className="flex items-center gap-2 text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>On-Chain Web Render</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Semantic Consensus</span>
+            <div className="text-slate-400 flex items-center justify-between gap-4">
+              <span>Protection Mechanism:</span>
+              <span className="text-emerald-400 font-bold">Dual Anti-Fraud Escrow</span>
             </div>
           </div>
         </div>
-
-        <TrustScoreBadge
-          score={trustScore}
-          streak={loans.filter(l => l.status === 'REPAID').length}
-          borrowedTotal={profile ? profile.total_borrowed : '0'}
-        />
       </div>
 
-      {/* Main Grid: Application Form vs Loans History */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Loan Application Form */}
-        <div className="lg:col-span-5 glass-card p-6 rounded-2xl border border-white/10 space-y-5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Send className="w-4.5 h-4.5 text-emerald-400" /> Apply for Microcredit
-            </h3>
-            <span className="text-[10px] font-mono-data bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">
-              INSTANT DISBURSAL
-            </span>
+      {/* Active P2P Sell Orders Grid */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <ShoppingCart className="w-5 h-5 text-emerald-400" /> Active P2P Escrow Listings
+          </h3>
+          <span className="text-xs text-slate-400 font-mono-data">Total Orders: {orders.length}</span>
+        </div>
+
+        {orders.length === 0 ? (
+          <div className="glass-card p-12 rounded-3xl border border-white/10 text-center space-y-3">
+            <AlertOctagon className="w-10 h-10 text-amber-400 mx-auto" />
+            <h4 className="text-lg font-bold text-white">No P2P Listings Found</h4>
+            <p className="text-xs text-slate-400 max-w-md mx-auto">
+              No merchant sell orders available on studionet. Switch to the <strong>Merchant Escrow Hub</strong> tab to create a new sell order!
+            </p>
           </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {orders.map(order => {
+              const cryptoVal = Number(order.crypto_amount);
+              const bondVal = (cryptoVal * 0.1).toFixed(2);
 
-          {/* Quick Presets */}
-          <div className="space-y-1.5">
-            <div className="text-[11px] text-slate-400 flex items-center justify-between">
-              <span>Quick Preset Proofs:</span>
-              <span className="text-[10px] text-slate-500">Click to autofill sample</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => fillSamplePreset('jumia')}
-                className="px-2.5 py-1.5 bg-dark-base/80 hover:bg-slate-800 border border-white/5 hover:border-emerald-500/40 rounded-xl text-[11px] text-slate-300 transition-all text-center"
-              >
-                🛒 Jumia Store
-              </button>
-              <button
-                type="button"
-                onClick={() => fillSamplePreset('moniepoint')}
-                className="px-2.5 py-1.5 bg-dark-base/80 hover:bg-slate-800 border border-white/5 hover:border-emerald-500/40 rounded-xl text-[11px] text-slate-300 transition-all text-center"
-              >
-                💳 Moniepoint POS
-              </button>
-              <button
-                type="button"
-                onClick={() => fillSamplePreset('utility')}
-                className="px-2.5 py-1.5 bg-dark-base/80 hover:bg-slate-800 border border-white/5 hover:border-emerald-500/40 rounded-xl text-[11px] text-slate-300 transition-all text-center"
-              >
-                ⚡ Utility Bill
-              </button>
-            </div>
+              return (
+                <div
+                  key={order.order_id}
+                  className="glass-card p-6 rounded-2xl border border-white/10 space-y-4 hover:border-emerald-500/40 transition-all flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-bold font-mono-data border border-emerald-500/20">
+                        Order #{order.order_id}
+                      </span>
+                      <span
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono-data ${
+                          order.status === 'LISTED'
+                            ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                            : order.status === 'COMPLETED'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            : order.status === 'DISPUTED_FRAUD'
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                    </div>
+
+                    <div>
+                      <div className="text-xs text-slate-400">Escrowed Crypto</div>
+                      <div className="text-2xl font-black text-white font-mono-data">{order.crypto_amount} GEN</div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-900/80 border border-white/5 space-y-1.5 text-xs font-mono-data">
+                      <div className="flex justify-between text-slate-300">
+                        <span>Required Fiat:</span>
+                        <span className="font-bold text-amber-400">
+                          {order.fiat_amount.toLocaleString()} {order.fiat_currency}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-slate-400 text-[11px]">
+                        <span>Bank:</span>
+                        <span className="text-white">{order.bank_name}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-400 text-[11px]">
+                        <span>Required Memo Code:</span>
+                        <span className="text-emerald-400 font-bold">{order.ref_code}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t border-white/5">
+                    <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                      <span>Buyer 10% Security Bond:</span>
+                      <span className="text-amber-400 font-bold font-mono-data">{bondVal} GEN</span>
+                    </div>
+
+                    {order.status === 'LISTED' && (
+                      <button
+                        onClick={() => handleInitiateBuy(order)}
+                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+                      >
+                        Initiate Trade & Deposit Bond <ArrowRight className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {order.buyer.toLowerCase() === address.toLowerCase() &&
+                      order.status === 'PENDING_BUYER_PROOF' && (
+                        <button
+                          onClick={() => setSelectedOrder(order)}
+                          className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
+                        >
+                          Upload Receipt Proof for AI Release
+                        </button>
+                      )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
+        )}
+      </div>
 
-          <form onSubmit={handleApply} className="space-y-4 pt-1">
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Merchant / Borrower Name</label>
-              <input
-                type="text"
-                placeholder="e.g. Amina Electronics Store"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                className="w-full bg-dark-base/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-sans"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Phone Number</label>
-              <input
-                type="text"
-                placeholder="e.g. +234 802 345 6789"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                className="w-full bg-dark-base/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono-data"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Store / Business URL</label>
-              <input
-                type="url"
-                placeholder="e.g. https://jumia.com.ng/shop/amina-electronics"
-                value={shopUrl}
-                onChange={e => setShopUrl(e.target.value)}
-                className="w-full bg-dark-base/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono-data"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center justify-between">
-                <span>Evidence URL (Screenshot / Revenue Proof)</span>
-                <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
-              </label>
-              <input
-                type="url"
-                placeholder="e.g. https://raw.githubusercontent.com/evidence/jumia_receipt.png"
-                value={evidenceUrl}
-                onChange={e => setEvidenceUrl(e.target.value)}
-                className="w-full bg-dark-base/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono-data"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+      {/* Trade & Bank Receipt Submission Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-card p-6 md:p-8 rounded-3xl border border-emerald-500/30 max-w-xl w-full space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Requested Loan ($ GEN)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-slate-500 text-xs font-mono-data">$</span>
-                  <input
-                    type="number"
-                    value={amount}
-                    onChange={e => setAmount(e.target.value)}
-                    className="w-full bg-dark-base/90 border border-slate-700/80 rounded-xl pl-7 pr-3 py-2.5 text-xs text-white font-mono-data focus:outline-none focus:border-emerald-500"
-                    required
-                  />
+                <h3 className="text-xl font-bold text-white">Bank Payment & AI Release</h3>
+                <p className="text-xs text-slate-400">Order #{selectedOrder.order_id} • Escrowed: {selectedOrder.crypto_amount} GEN</p>
+              </div>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Bank Payment Transfer Details */}
+            <div className="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-wider">
+                <ShieldCheck className="w-4 h-4" /> Transfer Fiat to Merchant Account
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs font-mono-data">
+                <div>
+                  <div className="text-[10px] text-slate-400">Bank Name</div>
+                  <div className="font-bold text-white">{selectedOrder.bank_name}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400">Account Owner</div>
+                  <div className="font-bold text-white">{selectedOrder.account_holder}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400">Account Number</div>
+                  <div className="font-bold text-emerald-400">{selectedOrder.bank_account}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400">Amount Required</div>
+                  <div className="font-bold text-amber-400">{selectedOrder.fiat_amount.toLocaleString()} {selectedOrder.fiat_currency}</div>
                 </div>
               </div>
 
+              {/* Memo Reference Code Highlight */}
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] text-amber-300 font-bold uppercase">Required Transfer Memo Code</div>
+                  <div className="text-sm font-black text-white font-mono-data">{selectedOrder.ref_code}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => copyMemo(selectedOrder.ref_code)}
+                  className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  {copiedMemo ? 'Copied!' : 'Copy Code'}
+                </button>
+              </div>
+            </div>
+
+            {/* Proof Submission Form */}
+            <form onSubmit={handleSubmitProof} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Duration (Days)</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1">
+                  Bank Transfer Receipt / Verification URL
+                </label>
                 <input
-                  type="number"
-                  value={duration}
-                  onChange={e => setDuration(e.target.value)}
-                  className="w-full bg-dark-base/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono-data focus:outline-none focus:border-emerald-500"
+                  type="url"
+                  value={proofUrl}
+                  onChange={e => setProofUrl(e.target.value)}
+                  placeholder="https://vcb.com.vn/verify?tx=..."
+                  className="w-full bg-dark-base/90 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono-data focus:outline-none focus:border-emerald-500"
                   required
                 />
               </div>
-            </div>
 
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.99] flex items-center justify-center gap-2"
-            >
-              <Sparkles className="w-4 h-4" /> Submit Application to GenLayer AI
-            </button>
-          </form>
-        </div>
-
-        {/* Loan History & Detailed AI Reasoning */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <FileText className="w-4.5 h-4.5 text-emerald-400" /> Your Microcredit Applications
-            </h3>
-            <button
-              onClick={fetchBorrowerData}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs flex items-center gap-1.5 border border-white/5"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
-            </button>
-          </div>
-
-          {loans.length === 0 ? (
-            <div className="glass-card p-10 rounded-2xl text-center text-slate-400 space-y-2">
-              <AlertCircle className="w-10 h-10 text-slate-600 mx-auto" />
-              <h4 className="text-base font-bold text-slate-300">No Applications Found</h4>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Fill out the application form on the left to trigger GenLayer AI consensus evaluation.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {loans.map(loan => (
-                <div key={loan.id} className="glass-card p-5 rounded-2xl border border-white/10 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-xs font-bold text-slate-400 font-mono-data">Loan #{loan.id}</span>
-                      <span className={`text-xs px-3 py-0.5 rounded-full font-bold border ${
-                        loan.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
-                        loan.status === 'REPAID' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
-                        loan.status === 'DISPUTED' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' :
-                        'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                      }`}>
-                        {loan.status}
-                      </span>
-                    </div>
-
-                    <div className="text-base font-black text-white font-mono-data">
-                      ${loan.principal} GEN
-                    </div>
-                  </div>
-
-                  {/* AI Underwriting Verdict & Explanation */}
-                  <div className="bg-dark-base/90 p-4 rounded-xl border border-white/5 space-y-2 relative overflow-hidden">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
-                        <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> AI Underwriter Verdict:
-                      </span>
-                      <span className={`text-xs font-bold font-mono-data px-2 py-0.5 rounded ${
-                        loan.ai_verdict === 'APPROVE' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
-                      }`}>
-                        {loan.ai_verdict}
-                      </span>
-                    </div>
-
-                    {loan.ai_reason && (
-                      <p className="text-xs text-slate-300 leading-relaxed italic bg-black/30 p-2.5 rounded-lg border border-white/5">
-                        "{loan.ai_reason}"
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Evidence Link & Actions */}
-                  <div className="flex items-center justify-between pt-1 text-xs">
-                    <a
-                      href={loan.evidence_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-slate-400 hover:text-emerald-400 flex items-center gap-1 font-mono-data truncate max-w-[200px]"
-                    >
-                      <FileText className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span className="truncate">{loan.evidence_url}</span>
-                      <ExternalLink className="w-3 h-3 shrink-0" />
-                    </a>
-
-                    {loan.status === 'ACTIVE' && (
-                      <button
-                        onClick={() => handleRepay(loan)}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-md shadow-emerald-500/20 flex items-center gap-1.5"
-                      >
-                        <Zap className="w-3.5 h-3.5" />
-                        Repay ${Number(loan.principal) * (1 + loan.interest_rate / 10000)} GEN
-                      </button>
-                    )}
-                  </div>
+              {/* Quick Sample Presets */}
+              <div className="space-y-2">
+                <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Quick Preset Receipts for Demo:
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="space-y-1.5">
+                  {sampleProofs.map((sample, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setProofUrl(sample.url)}
+                      className={`w-full text-left p-2.5 rounded-xl border text-xs transition-all flex items-center justify-between ${
+                        proofUrl === sample.url
+                          ? 'border-emerald-500 bg-emerald-500/10 text-white'
+                          : 'border-white/5 bg-slate-900/60 text-slate-400 hover:border-white/20'
+                      }`}
+                    >
+                      <div>
+                        <div className="font-bold text-white text-[11px]">{sample.label}</div>
+                        <div className="text-[10px] text-slate-400">{sample.desc}</div>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-bold py-3 rounded-xl text-xs transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4" /> Submit Proof to GenLayer AI & Auto-Release Escrow
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

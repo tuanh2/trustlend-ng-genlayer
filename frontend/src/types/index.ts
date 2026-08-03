@@ -1,39 +1,24 @@
-export interface Loan {
-  id: string;
-  borrower: string;
-  lender: string;
-  principal: string;
-  interest_rate: number;
-  due_date: number;
-  status: 'PENDING' | 'ACTIVE' | 'REPAID' | 'DEFAULTED' | 'DISPUTED' | 'REJECTED';
-  evidence_url: string;
-  ai_verdict: 'APPROVE' | 'REJECT' | '';
+export interface P2POrder {
+  order_id: string;
+  seller: string;
+  buyer: string;
+  crypto_amount: string; // GEN locked
+  fiat_amount: number;
+  fiat_currency: string;
+  bank_name: string;
+  bank_account: string;
+  account_holder: string;
+  ref_code: string;
+  status: 'LISTED' | 'PENDING_BUYER_PROOF' | 'VERIFYING_AI' | 'COMPLETED' | 'DISPUTED_FRAUD' | 'CANCELLED';
+  buyer_deposit: string;
+  proof_url: string;
+  ai_verdict: 'MATCHED' | 'FRAUD' | 'MISMATCH' | 'PENDING';
   ai_reason: string;
-  dispute_evidence: string;
-  dispute_verdict: 'HONEST_DEFAULT' | 'FRAUD' | 'FORCE_MAJEURE' | '';
 }
 
-export interface BorrowerProfile {
+export interface MerchantProfile {
   name: string;
-  phone: string;
-  shop_url: string;
-  evidence_urls: string[];
-  total_borrowed: string;
-  total_repaid: string;
-  is_verified: boolean;
-}
-
-export interface LenderProfile {
-  name: string;
-  total_deposited: string;
-  total_lent: string;
-  total_earned: string;
-}
-
-export interface PoolInfo {
-  total_pool: string;
-  total_loans: number;
-  min_loan: string;
-  max_loan: string;
-  base_interest_rate: number;
+  total_trades: number;
+  successful_releases: number;
+  reputation_score: number;
 }

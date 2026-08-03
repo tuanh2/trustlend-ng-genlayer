@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useGenLayer } from './hooks/useGenLayer';
 import { Navbar } from './components/Navbar';
-import { BorrowerDashboard } from './components/BorrowerDashboard';
-import { LenderDashboard } from './components/LenderDashboard';
-import { DisputePanel } from './components/DisputePanel';
+import { BorrowerDashboard as P2PMarket } from './components/BorrowerDashboard';
+import { LenderDashboard as MerchantHub } from './components/LenderDashboard';
+import { DisputePanel as DisputeCenter } from './components/DisputePanel';
 import { AlertTriangle, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<'borrower' | 'lender' | 'dispute'>('borrower');
+  const [activeTab, setActiveTab] = useState<'market' | 'merchant' | 'dispute'>('market');
 
   const {
     address,
@@ -23,7 +23,7 @@ export function App() {
   } = useGenLayer();
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-[#070A12] text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
       {/* Navbar */}
       <Navbar
         address={address}
@@ -57,11 +57,11 @@ export function App() {
               <h3 className="text-xl font-bold text-white">AI Consensus in Progress</h3>
               <p className="text-xs text-slate-300 mt-1">{txMessage}</p>
             </div>
-            <div className="p-3 bg-dark-base rounded-xl text-left border border-white/5 text-[11px] text-slate-400 space-y-1">
+            <div className="p-3 bg-dark-base rounded-xl text-left border border-white/5 text-[11px] text-slate-400 space-y-1 font-mono-data">
               <p className="flex items-center gap-1 font-semibold text-emerald-400">
                 <Sparkles className="w-3 h-3" /> Optimistic Democracy Consensus
               </p>
-              <p>Multiple LLM validator nodes are rendering evidence and comparing subjective verdicts on GenLayer studionet.</p>
+              <p>Multiple LLM validator nodes are inspecting the bank receipt and comparing subjective verdicts on GenLayer studionet.</p>
             </div>
           </div>
         </div>
@@ -69,16 +69,16 @@ export function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 p-4 md:p-8">
-        {activeTab === 'borrower' && (
-          <BorrowerDashboard
+        {activeTab === 'market' && (
+          <P2PMarket
             address={address}
             readContract={readContract}
             writeContract={writeContract}
           />
         )}
 
-        {activeTab === 'lender' && (
-          <LenderDashboard
+        {activeTab === 'merchant' && (
+          <MerchantHub
             address={address}
             readContract={readContract}
             writeContract={writeContract}
@@ -86,7 +86,7 @@ export function App() {
         )}
 
         {activeTab === 'dispute' && (
-          <DisputePanel
+          <DisputeCenter
             readContract={readContract}
             writeContract={writeContract}
           />
@@ -94,15 +94,15 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-6 px-4 text-center text-xs text-slate-500 space-y-2">
+      <footer className="border-t border-white/10 py-6 px-4 text-center text-xs text-slate-500 space-y-2 font-mono-data">
         <div className="flex items-center justify-center gap-4 text-slate-400">
           <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Powered by GenLayer AI</span>
           <span>•</span>
           <span>studionet</span>
           <span>•</span>
-          <span>React + Vite + TypeScript</span>
+          <span>10% Security Deposit Protection</span>
         </div>
-        <p>© 2026 TrustLend NG. P2P Microcredit for the Unbanked via Subjective Smart Contracts.</p>
+        <p>© 2026 TrustLend P2P Escrow. AI-Automated Fiat-to-Crypto Escrow Exchange.</p>
       </footer>
     </div>
   );

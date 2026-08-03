@@ -1,30 +1,33 @@
-# TrustLend NG — AI-Driven P2P Microcredit for the Unbanked
+# TrustLend P2P — AI-Automated Fiat-to-Crypto Escrow Exchange
 
-**TrustLend NG** is a decentralized peer-to-peer (P2P) microcredit platform designed for unbanked micro-merchants in emerging markets (e.g., Nigeria). It leverages **GenLayer Intelligent Contracts** to perform on-chain credit underwriting directly from unstructured web proof (storefront links, turnover receipts, utility bill screenshots) and provides automated subjective dispute resolution.
+**TrustLend P2P** is a decentralized peer-to-peer (P2P) Fiat-to-Crypto escrow exchange platform powered by **GenLayer Intelligent Contracts**. It replaces manual trader verification with **on-chain AI consensus** that automatically inspects bank transfer receipts and verification URLs to instantly release escrowed Crypto (GEN) to buyers while enforcing a **10% Buyer Security Bond** against fraudulent claims.
 
 ---
 
 ## 1. Problem & Solution
 
 ### The Problem
-Millions of micro-entrepreneurs across emerging markets lack formal bank accounts and traditional credit scores (e.g., CRC Credit Bureau in Nigeria). Despite generating steady daily cash flow on platforms like Jumia, Jiji, or Moniepoint, they remain locked out of basic financial credit ($50–$500 microloans).
+Traditional P2P fiat-to-crypto exchanges (e.g., Binance P2P, Remitano) force buyers to wait minutes or hours for sellers to manually check their bank apps and release crypto. Conversely, sellers risk fraudulent claims or photoshopped receipts that lock up liquidity during manual dispute processing.
 
 ### The Solution
-TrustLend NG replaces rigid corporate credit scoring with **GenLayer AI Subjective Consensus**:
-1. **Collateral-Free Credit Underwriting**: Merchants upload proof URLs (screenshots of sales, storefront links). GenLayer AI validators render web data on-chain (`gl.nondet.web.render`) and assess creditworthiness (`gl.nondet.exec_prompt`).
-2. **Instant Disbursal**: If consensus approves the applicant, funds are disbursed directly from a decentralized lender pool.
-3. **Automated Dispute Arbitration**: In cases of default, borrowers submit hardship proof (e.g., medical emergency certificates, disaster proofs). GenLayer AI validators evaluate whether default is **Force Majeure**, **Honest Liquidity Hardship**, or **Fraud**, applying fair extensions or reputation slashes accordingly.
+TrustLend P2P automates escrow releases with **GenLayer AI Subjective Consensus**:
+1. **Merchant Escrow Listing**: Merchants lock GEN Crypto into the Intelligent Contract escrow with required fiat payment details and a unique transfer reference code (e.g., `TLENG-88F3A`).
+2. **Buyer 10% Security Deposit**: Buyers initiate trade by locking a **10% Security Bond** into escrow to deter fake/photoshopped claims.
+3. **Automated AI Receipt Verification**: Buyers upload their bank transfer receipt URL. GenLayer AI validators render the receipt content on-chain (`gl.nondet.web.render`) and verify amount, account number, and memo reference matching.
+4. **Instant Auto-Release & Anti-Fraud Slashing**:
+   - **`MATCHED`**: Contract automatically releases the escrowed Crypto + refunds the 10% security deposit to the Buyer immediately!
+   - **`FRAUD`**: Contract **slashes 100% of the Buyer's 10% Security Deposit** and transfers it to the Seller as compensation for fraudulent claims!
 
 ---
 
 ## 2. Why GenLayer?
 
-Traditional EVM smart contracts (Solidity/Vyper) cannot read unstructured web data or make subjective qualitative judgements without relying on centralized, vulnerable off-chain oracles.
+Traditional EVM smart contracts cannot inspect external bank receipt URLs, parse unstructured web text, or make qualitative judgements without relying on centralized oracles.
 
 GenLayer enables **Intelligent Contracts** running Python at the consensus layer:
-- **No Oracles Required**: Direct on-chain web rendering (`gl.nondet.web.render`).
-- **Optimistic Democracy Consensus**: Multiple LLM validator nodes process qualitative prompts and achieve consensus on **meaning** (`verdict`) rather than byte-for-byte exact text matching.
-- **Soulbound Trust Reputation (SBT)**: Repayment history builds an on-chain credit score (0–100) and repayment streak.
+- **Oracle-Free Web Rendering**: Direct on-chain web parsing (`gl.nondet.web.render`).
+- **Optimistic Democracy Consensus**: Multiple LLM validator nodes evaluate bank receipts and reach consensus on semantic transaction validity (`verdict`).
+- **Automated Escrow Execution**: Instant, code-enforced crypto payouts upon AI consensus without human intervention.
 
 ---
 
@@ -32,7 +35,7 @@ GenLayer enables **Intelligent Contracts** running Python at the consensus layer
 
 ```
 +-----------------------------------------------------------------------------------+
-|                            TrustLend NG Frontend                                  |
+|                            TrustLend P2P Frontend                                 |
 |                    React + Vite + TypeScript + Tailwind CSS                       |
 +-----------------------------------------+-----------------------------------------+
                                           | MetaMask (chain: studionet)
@@ -41,40 +44,30 @@ GenLayer enables **Intelligent Contracts** running Python at the consensus layer
 |                           GenLayer Intelligent Contract                           |
 |                              (contracts/trustlend.py)                             |
 +-----------------------------------------+-----------------------------------------+
-|          Borrower Underwriting          |          Lender Liquidity Pool          |
-|  - Reads evidence via gl.nondet.web     |  - Lenders deposit GEN for APY yield    |
-|  - LLM Prompt: Credit evaluation        |  - Disburses loans upon AI approval     |
-|  - Semantic validator: Verdict matching |  - Receives principal + interest repay  |
+|             P2P Escrow Market           |           Merchant Escrow Hub           |
+|  - Buyers browse active sell listings   |  - Merchants lock GEN into escrow       |
+|  - Locks 10% Security Bond to buy       |  - Sets Bank Account & Ref Code         |
+|  - Submits Bank Receipt URL for release |  - Manages active P2P sell listings     |
 +-----------------------------------------+-----------------------------------------+
-|                           Subjective Dispute Arbitration                          |
-|  - Evaluates claim evidence (HONEST_DEFAULT vs FORCE_MAJEURE vs FRAUD)             |
-|  - Applies automatic extensions or Soulbound Trust Score penalties                |
+|                      Automated AI Bank Proof Consensus                            |
+|  - LLM Validators parse receipt via gl.nondet.web.render                          |
+|  - MATCHED: Instantly releases escrowed GEN to Buyer                              |
+|  - FRAUD: Slashes 100% of Buyer Security Bond to Seller                           |
 +-----------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 4. Contract Deployment (`studionet`)
+## 4. Deployed Contract & Live Application
 
-- **Deployed Contract Address**: `0x19B292aa1501c957F4215cCa15bb6D4A16f75541`
-- **GenLayer Explorer**: [https://genlayer-explorer.vercel.app/address/0x19B292aa1501c957F4215cCa15bb6D4A16f75541](https://genlayer-explorer.vercel.app/address/0x19B292aa1501c957F4215cCa15bb6D4A16f75541)
-
-### Manual Deployment Procedure:
-1. Open [GenLayer Studio — Run & Debug](https://studio.genlayer.com/run-debug).
-2. Click **Settings** -> **Reset Storage** -> **Confirm**.
-3. Perform a hard refresh on your browser (`Ctrl + Shift + R`).
-4. Copy the complete content of [`contracts/trustlend.py`](file:///d:/genlayer%20project/contracts/trustlend.py) into the Studio editor.
-5. Click **Deploy**.
-6. Inspect the deployment transaction in the sidebar and verify that **`Result: SUCCESS`** is displayed.
-7. Copy the deployed **Contract Address**.
+- **Live Application URL**: [https://trustlend-ng-genlayer.vercel.app](https://trustlend-ng-genlayer.vercel.app)
+- **Deployed Contract Address (`studionet`)**: `0x081aB66Cb915f9400Ac00B6b0Ce9aD8aa55dbC25`
+- **GenLayer Explorer**: [https://genlayer-explorer.vercel.app/address/0x081aB66Cb915f9400Ac00B6b0Ce9aD8aa55dbC25](https://genlayer-explorer.vercel.app/address/0x081aB66Cb915f9400Ac00B6b0Ce9aD8aa55dbC25)
 
 ---
 
-## 5. Live Application & Setup
+## 5. Local Setup & Build
 
-- **Live App URL**: `<TO_BE_FILLED_AFTER_VERCEL_DEPLOYMENT>`
-
-### Local Setup:
 ```bash
 # 1. Navigate into frontend directory
 cd frontend
@@ -83,14 +76,12 @@ cd frontend
 npm install
 
 # 3. Configure .env file
-# VITE_CONTRACT_ADDRESS=0x19B292aa1501c957F4215cCa15bb6D4A16f75541
+# VITE_CONTRACT_ADDRESS=0x081aB66Cb915f9400Ac00B6b0Ce9aD8aa55dbC25
 
 # 4. Start local development server
 npm run dev
-```
 
-### Production Build:
-```bash
+# 5. Production build
 npm run build
 ```
 
@@ -101,10 +92,7 @@ npm run build
 Tests are written using `genlayer-test` (`gltest`).
 
 ```bash
-# Install genlayer-test
-pip install genlayer-test
-
-# Run tests targeting studionet
+# Run pytest suite
 gltest --network studionet
 ```
 

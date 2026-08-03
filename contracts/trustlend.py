@@ -5,39 +5,30 @@ from dataclasses import dataclass
 
 @allow_storage
 @dataclass
-class Loan:
-    borrower: str
-    lender: str
-    principal: bigint
-    interest_rate: u256
-    due_date: u256
-    status: str  # PENDING | ACTIVE | REPAID | DEFAULTED | DISPUTED | REJECTED
-    evidence_url: str
-    ai_verdict: str  # APPROVE | REJECT
-    ai_reason: str
-    dispute_evidence: str
-    dispute_verdict: str  # HONEST_DEFAULT | FRAUD | FORCE_MAJEURE | ""
+class P2POrder:
+    seller: str
+    buyer: str
+    crypto_amount: bigint  # Locked GEN crypto in wei
+    fiat_amount: u256      # Fiat required e.g., 2500000 VND or 50 USD
+    fiat_currency: str     # VND, NGN, USD, EUR
+    bank_name: str         # Vietcombank, Techcombank, Moniepoint, etc.
+    bank_account: str      # Account Number
+    account_holder: str    # Account Owner Name
+    ref_code: str          # Unique memo required e.g. TLENG-88F3A
+    status: str            # LISTED | PENDING_BUYER_PROOF | VERIFYING_AI | COMPLETED | DISPUTED_FRAUD | CANCELLED
+    buyer_deposit: bigint  # 10% Security deposit locked by buyer
+    proof_url: str         # Bank receipt / verification URL submitted by buyer
+    ai_verdict: str        # MATCHED | FRAUD | MISMATCH | PENDING
+    ai_reason: str         # AI verification reasoning output
 
 
 @allow_storage
 @dataclass
-class BorrowerProfile:
+class MerchantProfile:
     name: str
-    phone: str
-    shop_url: str
-    evidence_urls: DynArray[str]
-    total_borrowed: bigint
-    total_repaid: bigint
-    is_verified: bool
-
-
-@allow_storage
-@dataclass
-class LenderProfile:
-    name: str
-    total_deposited: bigint
-    total_lent: bigint
-    total_earned: bigint
+    total_trades: u256
+    successful_releases: u256
+    reputation_score: u256
 
 
 def _addr_str(addr: Address) -> str:
@@ -48,393 +39,231 @@ def _addr_str(addr: Address) -> str:
 
 
 class Contract(gl.Contract):
-    loans: TreeMap[str, Loan]
-    borrowers: TreeMap[str, BorrowerProfile]
-    lenders: TreeMap[str, LenderProfile]
-    loan_counter: u256
-    trust_scores: TreeMap[str, u256]
-    repayment_streak: TreeMap[str, u256]
-    lender_deposits: TreeMap[str, bigint]
-    total_pool: bigint
-    min_loan: bigint
-    max_loan: bigint
-    base_interest_rate: u256
+    orders: TreeMap[str, P2POrder]
+    merchants: TreeMap[str, MerchantProfile]
+    order_counter: u256
+    security_bond_pct: u256  # 10% = 1000 basis points
 
     def __init__(self):
-        self.loan_counter = u256(0)
-        self.total_pool = bigint(0)
-        self.min_loan = bigint(10)
-        self.max_loan = bigint(1000000000000000000000)  # Max loan bound in wei / GEN units
-        self.base_interest_rate = u256(500)  # 500 basis points = 5%
+        self.order_counter = u256(0)
+        self.security_bond_pct = u256(1000)  # 10.00%
 
-    @gl.public.write
-    def apply_for_loan(
+    @gl.public.write.payable
+    def create_sell_order(
         self,
-        name: str,
-        phone: str,
-        shop_url: str,
-        evidence_url: str,
-        amount: int,
-        duration_days: int,
+        fiat_amount: int,
+        fiat_currency: str,
+        bank_name: str,
+        bank_account: str,
+        account_holder: str,
+        ref_code: str,
     ) -> str:
-        if amount <= 0:
-            raise UserError("Invalid amount")
-        if bigint(amount) < self.min_loan:
-            raise UserError("Invalid amount")
-        if evidence_url == "" or shop_url == "":
-            raise UserError("Evidence URL unreachable")
+        if gl.message.value <= 0:
+            raise UserError("Must lock crypto amount in escrow")
+        if fiat_amount <= 0:
+            raise UserError("Invalid fiat amount")
+        if bank_account == "" or ref_code == "":
+            raise UserError("Invalid bank account or memo reference code")
 
         sender_str = _addr_str(gl.message.sender)
+        self.order_counter = u256(int(self.order_counter) + 1)
+        order_id = str(self.order_counter)
 
-        # Update or register borrower profile
-        if sender_str not in self.borrowers:
-            empty_evidence = gl.storage.inmem_allocate(DynArray[str])
-            profile = BorrowerProfile(
-                name=name,
-                phone=phone,
-                shop_url=shop_url,
-                evidence_urls=empty_evidence,
-                total_borrowed=bigint(0),
-                total_repaid=bigint(0),
-                is_verified=True,
+        new_order = P2POrder(
+            seller=sender_str,
+            buyer="",
+            crypto_amount=gl.message.value,
+            fiat_amount=u256(fiat_amount),
+            fiat_currency=fiat_currency.upper(),
+            bank_name=bank_name,
+            bank_account=bank_account,
+            account_holder=account_holder,
+            ref_code=ref_code.upper(),
+            status="LISTED",
+            buyer_deposit=bigint(0),
+            proof_url="",
+            ai_verdict="PENDING",
+            ai_reason="",
+        )
+        self.orders[order_id] = new_order
+
+        if sender_str not in self.merchants:
+            self.merchants[sender_str] = MerchantProfile(
+                name=account_holder,
+                total_trades=u256(0),
+                successful_releases=u256(0),
+                reputation_score=u256(100),
             )
-            self.borrowers[sender_str] = profile
-        
-        # Add evidence URL to profile list
-        curr_profile = self.borrowers[sender_str]
-        curr_profile.evidence_urls.append(evidence_url)
-        self.borrowers[sender_str] = curr_profile
 
-        # Define non-deterministic closure for credit underwriting
+        return order_id
+
+    @gl.public.write.payable
+    def initiate_buy_order(self, order_id: str) -> None:
+        if order_id not in self.orders:
+            raise UserError("Order not found")
+
+        order = self.orders[order_id]
+        if order.status != "LISTED":
+            raise UserError("Order not available for buying")
+
+        sender_str = _addr_str(gl.message.sender)
+        if sender_str == order.seller:
+            raise UserError("Seller cannot buy own order")
+
+        # 10% Security Deposit requirement calculation
+        required_bond = (order.crypto_amount * bigint(self.security_bond_pct)) // bigint(10000)
+        if gl.message.value < required_bond:
+            raise UserError("Insufficient 10% security bond deposit")
+
+        order.buyer = sender_str
+        order.buyer_deposit = gl.message.value
+        order.status = "PENDING_BUYER_PROOF"
+        self.orders[order_id] = order
+
+    @gl.public.write
+    def submit_payment_proof(self, order_id: str, proof_url: str) -> str:
+        if order_id not in self.orders:
+            raise UserError("Order not found")
+
+        order = self.orders[order_id]
+        sender_str = _addr_str(gl.message.sender)
+
+        if sender_str != order.buyer:
+            raise UserError("Only initiating buyer can submit payment proof")
+
+        if order.status != "PENDING_BUYER_PROOF":
+            raise UserError("Order not in pending payment proof state")
+
+        if proof_url == "":
+            raise UserError("Proof URL cannot be empty")
+
+        order.proof_url = proof_url
+        order.status = "VERIFYING_AI"
+
+        # GenLayer Subjective AI Consensus for Bank Receipt Verification
         def leader_fn():
             try:
-                web_data = gl.nondet.web.render(evidence_url, mode="text")
+                receipt_text = gl.nondet.web.render(proof_url, mode="text")
             except Exception:
-                web_data = "[UNREACHABLE]"
+                receipt_text = "[UNREACHABLE]"
 
-            if web_data == "" or "[UNREACHABLE]" in web_data:
+            if receipt_text == "" or "[UNREACHABLE]" in receipt_text:
                 return {
-                    "verdict": "REJECT",
-                    "risk_score": 10,
-                    "max_loan_usd": 0,
-                    "confidence": 0,
-                    "reason": "Evidence URL unreachable or returned empty content",
+                    "verdict": "FRAUD",
+                    "confidence": 95,
+                    "reason": "Bank receipt URL unreachable or empty content. Flagged as fraudulent proof.",
                 }
 
-            prompt = f"""Evaluate microloan applicant from emerging market.
-Shop / Business URL: {shop_url}
-Evidence Document Content: {web_data}
-Requested Loan Amount: ${amount}
-Requested Duration: {duration_days} days
+            prompt = f"""Verify P2P Bank Transfer Receipt for Crypto Escrow Release.
+Required Fiat Amount: {order.fiat_amount} {order.fiat_currency}
+Target Bank Account: {order.bank_account} ({order.bank_name})
+Account Holder Name: {order.account_holder}
+Required Memo Reference Code: {order.ref_code}
 
-Analyze applicant revenue streams, turnover proof, business legitimacy, and default risk.
-Return STRICT JSON format:
-{{"verdict": "APPROVE"|"REJECT", "risk_score": 1-10, "max_loan_usd": int, "confidence": 0-100, "reason": "string reasoning"}}"""
+Bank Receipt Web Page Content:
+{receipt_text}
 
-            res = gl.nondet.exec_prompt(prompt, response_format="json")
-            return res
+Analyze if the bank transfer receipt proves a successful payment matching ALL parameters.
+Detect any potential tampering, missing memo code, mismatched amount, or fraudulent claims.
+
+Return STRICT JSON:
+{{"verdict": "MATCHED"|"FRAUD"|"MISMATCH", "confidence": 0-100, "reason": "Detailed AI audit explanation"}}"""
+
+            return gl.nondet.exec_prompt(prompt, response_format="json")
 
         def validator_fn(leader_res) -> bool:
-            if not isinstance(leader_res, gl.vm.Return):
+            if not isinstance(leader_res, gl.vm.Return) or not isinstance(leader_res.calldata, dict):
                 return False
-            leader = leader_res.calldata
-            if not isinstance(leader, dict):
-                return False
-
             mine = leader_fn()
             if not isinstance(mine, dict):
                 return False
-
-            # Semantic consensus check: compare verdict and risk_score within +-1
-            if mine.get("verdict") != leader.get("verdict"):
-                return False
-            if abs(mine.get("risk_score", 0) - leader.get("risk_score", 0)) > 1:
-                return False
-            return True
+            return mine.get("verdict") == leader_res.calldata.get("verdict")
 
         eval_res = gl.vm.run_nondet(leader_fn, validator_fn)
 
         if not isinstance(eval_res, dict):
-            raise UserError("AI evaluation failed: invalid response format")
+            raise UserError("AI verification consensus failed")
 
-        reason = str(eval_res.get("reason", "AI evaluation completed"))
-        confidence = int(eval_res.get("confidence", 0))
-        verdict = str(eval_res.get("verdict", "REJECT"))
-        max_allowed = int(eval_res.get("max_loan_usd", 0))
+        verdict = str(eval_res.get("verdict", "MISMATCH"))
+        reason = str(eval_res.get("reason", "AI verification completed"))
 
-        if "Evidence URL unreachable" in reason:
-            raise UserError("Evidence URL unreachable")
+        order.ai_verdict = verdict
+        order.ai_reason = reason
 
-        if confidence < 60 and verdict == "APPROVE":
-            verdict = "REJECT"
-            reason = f"Escalated to review: AI confidence ({confidence}%) below minimum safety threshold (60%)"
+        if verdict == "MATCHED":
+            # SUCCESSFUL AI VERIFICATION:
+            # 1. Transfer locked crypto + return 10% security deposit to Buyer!
+            total_buyer_payout = order.crypto_amount + order.buyer_deposit
+            order.status = "COMPLETED"
+            self.orders[order_id] = order
 
-        self.loan_counter = u256(int(self.loan_counter) + 1)
-        loan_id = str(self.loan_counter)
-        due_timestamp = u256(duration_days * 86400)
+            # Update merchant stats
+            if order.seller in self.merchants:
+                m_prof = self.merchants[order.seller]
+                m_prof.total_trades += u256(1)
+                m_prof.successful_releases += u256(1)
+                self.merchants[order.seller] = m_prof
 
-        if verdict == "APPROVE" and amount <= max_allowed and self.total_pool >= bigint(amount):
-            self.total_pool -= bigint(amount)
-            new_loan = Loan(
-                borrower=sender_str,
-                lender="POOL",
-                principal=bigint(amount),
-                interest_rate=self.base_interest_rate,
-                due_date=due_timestamp,
-                status="ACTIVE",
-                evidence_url=evidence_url,
-                ai_verdict="APPROVE",
-                ai_reason=reason,
-                dispute_evidence="",
-                dispute_verdict="",
-            )
-            self.loans[loan_id] = new_loan
+            # Instant automated escrow release to buyer
+            gl.get_contract_at(Address(order.buyer)).emit_transfer(value=u256(total_buyer_payout))
 
-            # Update borrower profile borrowed amount
-            b_prof = self.borrowers[sender_str]
-            b_prof.total_borrowed += bigint(amount)
-            self.borrowers[sender_str] = b_prof
+        elif verdict == "FRAUD":
+            # FRAUDULENT / FAKE PROOF DETECTED:
+            # 1. Slash 100% of Buyer's Security Deposit and pay it to Seller as compensation!
+            # 2. Return original locked crypto to Seller!
+            total_seller_payout = order.crypto_amount + order.buyer_deposit
+            order.status = "DISPUTED_FRAUD"
+            self.orders[order_id] = order
 
-            # Disburse funds to borrower
-            gl.get_contract_at(gl.message.sender).emit_transfer(value=u256(amount))
-        else:
-            if verdict == "APPROVE" and self.total_pool < bigint(amount):
-                reason = f"Approved by AI but rejected due to insufficient liquidity pool balance (Available: {self.total_pool})"
+            # Penalty slash to seller
+            gl.get_contract_at(Address(order.seller)).emit_transfer(value=u256(total_seller_payout))
 
-            rejected_loan = Loan(
-                borrower=sender_str,
-                lender="NONE",
-                principal=bigint(amount),
-                interest_rate=self.base_interest_rate,
-                due_date=due_timestamp,
-                status="REJECTED",
-                evidence_url=evidence_url,
-                ai_verdict="REJECT",
-                ai_reason=reason,
-                dispute_evidence="",
-                dispute_verdict="",
-            )
-            self.loans[loan_id] = rejected_loan
+        else: # MISMATCH
+            order.status = "PENDING_BUYER_PROOF"
+            self.orders[order_id] = order
 
-        return loan_id
-
-    @gl.public.write.payable
-    def repay_loan(self, loan_id: str) -> None:
-        if loan_id not in self.loans:
-            raise UserError("Loan not found")
-
-        loan = self.loans[loan_id]
-
-        if loan.status == "REPAID":
-            raise UserError("Loan already repaid")
-
-        if loan.status not in ["ACTIVE", "DISPUTED"]:
-            raise UserError("Loan not active or disputed")
-
-        interest = (loan.principal * bigint(loan.interest_rate)) // bigint(10000)
-        total_due = loan.principal + interest
-
-        if gl.message.value < total_due:
-            raise UserError("Invalid amount")
-
-        # Accept payment into pool
-        self.total_pool += gl.message.value
-
-        loan.status = "REPAID"
-        self.loans[loan_id] = loan
-
-        # Update borrower stats
-        borrower_str = loan.borrower
-        curr_score = int(self.trust_scores.get(borrower_str, u256(50)))
-        curr_streak = int(self.repayment_streak.get(borrower_str, u256(0)))
-
-        self.repayment_streak[borrower_str] = u256(curr_streak + 1)
-        self.trust_scores[borrower_str] = u256(min(100, curr_score + 5))
-
-        if borrower_str in self.borrowers:
-            b_prof = self.borrowers[borrower_str]
-            b_prof.total_repaid += gl.message.value
-            self.borrowers[borrower_str] = b_prof
-
-    @gl.public.write
-    def file_dispute(self, loan_id: str, evidence_url: str, reason: str) -> str:
-        if loan_id not in self.loans:
-            raise UserError("Loan not found")
-
-        loan = self.loans[loan_id]
-        sender_str = _addr_str(gl.message.sender)
-
-        if sender_str != loan.borrower and sender_str != loan.lender and loan.lender != "POOL":
-            raise UserError("Unauthorized to file dispute")
-
-        if loan.status == "REPAID":
-            raise UserError("Loan already repaid")
-
-        if evidence_url == "":
-            raise UserError("Evidence URL unreachable")
-
-        loan.status = "DISPUTED"
-        loan.dispute_evidence = evidence_url
-
-        def leader_fn():
-            try:
-                ev_content = gl.nondet.web.render(evidence_url, mode="text")
-            except Exception:
-                ev_content = "[UNREACHABLE]"
-
-            if ev_content == "" or "[UNREACHABLE]" in ev_content:
-                return {
-                    "verdict": "FRAUD",
-                    "confidence": 90,
-                    "reason": "Evidence URL unreachable or empty during dispute investigation",
-                }
-
-            prompt = f"""Arbitrate loan default dispute for TrustLend NG.
-Loan ID: {loan_id}
-Principal: ${loan.principal}
-Claim statement: {reason}
-Evidence text content: {ev_content}
-
-Determine whether default is caused by:
-- HONEST_DEFAULT: Borrower facing temporary liquidity hardship, intends to repay.
-- FRAUD: Intentional default, deceptive claims, or fake evidence.
-- FORCE_MAJEURE: Sickness, accident, emergency, or natural disaster with proof.
-
-Return STRICT JSON:
-{{"verdict": "HONEST_DEFAULT"|"FRAUD"|"FORCE_MAJEURE", "confidence": 0-100, "reason": "string reasoning"}}"""
-
-            res = gl.nondet.exec_prompt(prompt, response_format="json")
-            return res
-
-        def validator_fn(leader_res) -> bool:
-            if not isinstance(leader_res, gl.vm.Return):
-                return False
-            leader = leader_res.calldata
-            if not isinstance(leader, dict):
-                return False
-
-            mine = leader_fn()
-            if not isinstance(mine, dict):
-                return False
-
-            return mine.get("verdict") == leader.get("verdict")
-
-        disp_res = gl.vm.run_nondet(leader_fn, validator_fn)
-
-        if not isinstance(disp_res, dict):
-            raise UserError("AI dispute evaluation failed: invalid response format")
-
-        verdict = str(disp_res.get("verdict", "HONEST_DEFAULT"))
-        disp_reason = str(disp_res.get("reason", "Dispute resolved by AI validator consensus"))
-
-        loan.dispute_verdict = verdict
-        loan.ai_reason = disp_reason
-
-        borrower_str = loan.borrower
-        if verdict == "FRAUD":
-            curr_score = int(self.trust_scores.get(borrower_str, u256(50)))
-            self.trust_scores[borrower_str] = u256(max(0, curr_score - 25))
-            self.repayment_streak[borrower_str] = u256(0)
-        elif verdict == "FORCE_MAJEURE":
-            # Extend due date by 30 days
-            loan.due_date = u256(int(loan.due_date) + 30 * 86400)
-        elif verdict == "HONEST_DEFAULT":
-            # Grace extension by 15 days
-            loan.due_date = u256(int(loan.due_date) + 15 * 86400)
-
-        self.loans[loan_id] = loan
         return verdict
 
-    @gl.public.write.payable
-    def deposit(self) -> None:
-        if gl.message.value <= 0:
-            raise UserError("Invalid amount")
-
-        sender_str = _addr_str(gl.message.sender)
-        curr_dep = self.lender_deposits.get(sender_str, bigint(0))
-
-        self.lender_deposits[sender_str] = curr_dep + gl.message.value
-        self.total_pool += gl.message.value
-
-        if sender_str not in self.lenders:
-            l_prof = LenderProfile(
-                name="Lender",
-                total_deposited=gl.message.value,
-                total_lent=bigint(0),
-                total_earned=bigint(0),
-            )
-            self.lenders[sender_str] = l_prof
-        else:
-            l_prof = self.lenders[sender_str]
-            l_prof.total_deposited += gl.message.value
-            self.lenders[sender_str] = l_prof
-
     @gl.public.write
-    def withdraw(self, amount: int) -> None:
-        if amount <= 0:
-            raise UserError("Invalid amount")
+    def cancel_sell_order(self, order_id: str) -> None:
+        if order_id not in self.orders:
+            raise UserError("Order not found")
 
+        order = self.orders[order_id]
         sender_str = _addr_str(gl.message.sender)
-        curr_dep = self.lender_deposits.get(sender_str, bigint(0))
 
-        if bigint(amount) > curr_dep:
-            raise UserError("Insufficient deposit balance")
+        if sender_str != order.seller:
+            raise UserError("Only seller can cancel order")
 
-        if bigint(amount) > self.total_pool:
-            raise UserError("Insufficient liquidity pool balance")
+        if order.status != "LISTED":
+            raise UserError("Cannot cancel order in active trade or completed state")
 
-        self.lender_deposits[sender_str] = curr_dep - bigint(amount)
-        self.total_pool -= bigint(amount)
+        order.status = "CANCELLED"
+        self.orders[order_id] = order
 
-        if sender_str in self.lenders:
-            l_prof = self.lenders[sender_str]
-            l_prof.total_deposited -= bigint(amount)
-            self.lenders[sender_str] = l_prof
-
-        gl.get_contract_at(gl.message.sender).emit_transfer(value=u256(amount))
+        # Refund locked crypto to seller
+        gl.get_contract_at(Address(order.seller)).emit_transfer(value=u256(order.crypto_amount))
 
     @gl.public.view
-    def get_loan(self, loan_id: str) -> Loan:
-        if loan_id not in self.loans:
-            raise UserError("Loan not found")
-        return self.loans[loan_id]
+    def get_order(self, order_id: str) -> P2POrder:
+        if order_id not in self.orders:
+            raise UserError("Order not found")
+        return self.orders[order_id]
 
     @gl.public.view
-    def get_borrower_profile(self, addr_str: str) -> BorrowerProfile:
-        if addr_str in self.borrowers:
-            return self.borrowers[addr_str]
-        empty_evidence = gl.storage.inmem_allocate(DynArray[str])
-        return BorrowerProfile(
-            name="Unregistered",
-            phone="",
-            shop_url="",
-            evidence_urls=empty_evidence,
-            total_borrowed=bigint(0),
-            total_repaid=bigint(0),
-            is_verified=False,
+    def get_merchant_profile(self, addr_str: str) -> MerchantProfile:
+        if addr_str in self.merchants:
+            return self.merchants[addr_str]
+        return MerchantProfile(
+            name="Merchant",
+            total_trades=u256(0),
+            successful_releases=u256(0),
+            reputation_score=u256(100),
         )
 
     @gl.public.view
-    def get_lender_profile(self, addr_str: str) -> LenderProfile:
-        if addr_str in self.lenders:
-            return self.lenders[addr_str]
-        return LenderProfile(
-            name="Unregistered",
-            total_deposited=bigint(0),
-            total_lent=bigint(0),
-            total_earned=bigint(0),
-        )
-
-    @gl.public.view
-    def get_trust_score(self, addr_str: str) -> u256:
-        return self.trust_scores.get(addr_str, u256(50))
-
-    @gl.public.view
-    def get_pool_info(self) -> dict:
+    def get_market_info(self) -> dict:
         return {
-            "total_pool": self.total_pool,
-            "total_loans": self.loan_counter,
-            "min_loan": self.min_loan,
-            "max_loan": self.max_loan,
-            "base_interest_rate": self.base_interest_rate,
+            "total_orders": self.order_counter,
+            "security_bond_pct": self.security_bond_pct,
         }
