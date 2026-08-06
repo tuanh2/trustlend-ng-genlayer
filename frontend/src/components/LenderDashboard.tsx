@@ -1,268 +1,392 @@
-import React, { useState } from 'react';
-import { DollarSign, Zap, CheckCircle2, AlertTriangle, Play, Key, RefreshCw, FileCheck } from 'lucide-react';
-import type { CEXConnection, CEXOrder } from '../types';
-import { playSuccessChime } from '../utils/audio';
+import React, { useState, useEffect, useCallback } from 'react';
+import { PlusCircle, RefreshCw, XCircle, ArrowRightLeft, DollarSign, ShieldCheck, CheckCircle2, Copy } from 'lucide-react';
+import type { P2POrder } from '../types';
 
-interface MerchantHubProps {
+interface SellerHubProps {
   address: string;
   readContract: (fn: string, args?: any[]) => Promise<any>;
   writeContract: (fn: string, args?: any[], value?: bigint, loadingMsg?: string) => Promise<any>;
 }
 
-export const LenderDashboard: React.FC<MerchantHubProps> = () => {
-  const [cexList, setCexList] = useState<CEXConnection[]>([
-    { id: 'binance', name: 'Binance P2P', logo: '🟡', connected: true, apiKey: 'bn_live_9f82...3a1e', todayVolumeUsdt: 6850, todayOrderCount: 27 },
-    { id: 'okx', name: 'OKX P2P', logo: '⬛', connected: true, apiKey: 'okx_live_4b77...8c99', todayVolumeUsdt: 4200, todayOrderCount: 16 },
-    { id: 'bybit', name: 'Bybit P2P', logo: '🟧', connected: true, apiKey: 'bybit_live_11a8...55f2', todayVolumeUsdt: 2600, todayOrderCount: 11 },
-    { id: 'mexc', name: 'MEXC P2P', logo: '🟢', connected: false, apiKey: 'mexc_test_0000...0000', todayVolumeUsdt: 1200, todayOrderCount: 4 },
-  ]);
+export const LenderDashboard: React.FC<SellerHubProps> = ({
+  address,
+  readContract,
+  writeContract,
+}) => {
+  // Form State for Creating On-Chain Sell Order
+  const [cryptoAmount, setCryptoAmount] = useState('100');
+  const [fiatAmount, setFiatAmount] = useState('2540000');
+  const [fiatCurrency, setFiatCurrency] = useState('VND');
+  const [bankName, setBankName] = useState('Vietcombank');
+  const [bankAccount, setBankAccount] = useState('9988776655');
+  const [accountHolder, setAccountHolder] = useState('TRIN THI NGAN');
+  const [refCode, setRefCode] = useState(() => `TLENG-${Math.random().toString(36).substring(2, 7).toUpperCase()}`);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copiedMemo, setCopiedMemo] = useState(false);
 
-  const [cexOrders, setCexOrders] = useState<CEXOrder[]>([
-    {
-      id: 'CEX-BN-9921',
-      exchange: 'Binance P2P',
-      pair: 'USDT/VND',
-      cryptoAmount: 100,
-      fiatAmount: 2540000,
-      currency: 'VND',
-      buyerName: 'NGUYEN VAN A',
-      bankName: 'Vietcombank',
-      accountNumber: '9988776655',
-      refCode: 'TLENG-88F3A',
-      status: 'COMPLETED_AUTO',
-      aiScore: 99.8,
-      timestamp: '19:14:02',
-      aiReason: 'Verified Vietcombank transfer 2,540,000 VND to account 9988776655. Released on Binance API.',
-    },
-    {
-      id: 'CEX-OKX-8842',
-      exchange: 'OKX P2P',
-      pair: 'USDT/VND',
-      cryptoAmount: 250,
-      fiatAmount: 6350000,
-      currency: 'VND',
-      buyerName: 'TRAN THI B',
-      bankName: 'Techcombank',
-      accountNumber: '1903887766',
-      refCode: 'TLENG-44E91',
-      status: 'COMPLETED_AUTO',
-      aiScore: 100,
-      timestamp: '19:10:45',
-      aiReason: 'Verified Techcombank digital receipt. 6,350,000 VND received. Released 250 USDT.',
-    },
-    {
-      id: 'CEX-BYBIT-3310',
-      exchange: 'Bybit P2P',
-      pair: 'USDT/VND',
-      cryptoAmount: 500,
-      fiatAmount: 12700000,
-      currency: 'VND',
-      buyerName: 'LE HOANG C',
-      bankName: 'MBBank',
-      accountNumber: '00011223344',
-      refCode: 'TLENG-99C12',
-      status: 'NEEDS_REVIEW',
-      aiScore: 45.2,
-      timestamp: '18:58:12',
-      aiReason: '⚠️ Mismatched account holder name on payment proof. Flagged for merchant review.',
-    },
-  ]);
+  // Real On-Chain Orders & Merchant Stats
+  const [sellerOrders, setSellerOrders] = useState<P2POrder[]>([]);
+  const [merchantProfile, setMerchantProfile] = useState<{ total_trades: number; successful_releases: number; reputation_score: number }>({
+    total_trades: 0,
+    successful_releases: 0,
+    reputation_score: 100,
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [activeFilter, setActiveFilter] = useState<'ALL' | 'COMPLETED_AUTO' | 'NEEDS_REVIEW' | 'FRAUD_BLOCKED'>('ALL');
-  const [isSimulatingOrder, setIsSimulatingOrder] = useState(false);
+  // Fetch On-Chain Seller Orders & Merchant Profile
+  const fetchSellerData = useCallback(async () => {
+    if (!address) return;
+    setIsLoading(true);
+    try {
+      // Get Market Info
+      const marketInfo = await readContract('get_market_info');
+      const totalCount = Number(marketInfo?.total_orders || 0);
 
-  const simulateIncomingCEXOrder = () => {
-    setIsSimulatingOrder(true);
-    const newId = `CEX-BN-${Math.floor(1000 + Math.random() * 9000)}`;
-    const newRef = `TLENG-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+      const fetchedList: P2POrder[] = [];
+      for (let i = 1; i <= totalCount; i++) {
+        const ordData = await readContract('get_order', [String(i)]);
+        if (ordData && String(ordData.seller || '').toLowerCase() === address.toLowerCase()) {
+          fetchedList.push({
+            order_id: String(i),
+            seller: String(ordData.seller || ''),
+            buyer: String(ordData.buyer || ''),
+            crypto_amount: String(ordData.crypto_amount || '0'),
+            fiat_amount: Number(ordData.fiat_amount || 0),
+            fiat_currency: String(ordData.fiat_currency || 'VND'),
+            bank_name: String(ordData.bank_name || ''),
+            bank_account: String(ordData.bank_account || ''),
+            account_holder: String(ordData.account_holder || ''),
+            ref_code: String(ordData.ref_code || ''),
+            status: ordData.status || 'LISTED',
+            buyer_deposit: String(ordData.buyer_deposit || '0'),
+            proof_url: String(ordData.proof_url || ''),
+            ai_verdict: ordData.ai_verdict || 'PENDING',
+            ai_reason: String(ordData.ai_reason || ''),
+          });
+        }
+      }
+      setSellerOrders(fetchedList);
 
-    setTimeout(() => {
-      const newOrd: CEXOrder = {
-        id: newId,
-        exchange: 'Binance P2P',
-        pair: 'USDT/VND',
-        cryptoAmount: 100,
-        fiatAmount: 2540000,
-        currency: 'VND',
-        buyerName: 'VO VAN D',
-        bankName: 'Vietcombank',
-        accountNumber: '9988776655',
-        refCode: newRef,
-        status: 'COMPLETED_AUTO',
-        aiScore: 99.9,
-        timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        aiReason: `Scanned Vietcombank E-Receipt. 2,540,000 VND received for memo ${newRef}. Released 100 USDT on Binance API.`,
-      };
+      // Get Merchant Profile
+      const profile = await readContract('get_merchant_profile', [address]);
+      if (profile) {
+        setMerchantProfile({
+          total_trades: Number(profile.total_trades || 0),
+          successful_releases: Number(profile.successful_releases || 0),
+          reputation_score: Number(profile.reputation_score || 100),
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching seller data:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [address, readContract]);
 
-      setCexOrders(prev => [newOrd, ...prev]);
-      setIsSimulatingOrder(false);
-      playSuccessChime();
-    }, 2000);
+  useEffect(() => {
+    fetchSellerData();
+  }, [fetchSellerData]);
+
+  // Handle On-Chain Create Sell Order
+  const handleCreateSellOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cryptoAmount || !fiatAmount || !bankAccount || !refCode) return;
+
+    setIsSubmitting(true);
+    try {
+      const cryptoWei = BigInt(cryptoAmount);
+      const res = await writeContract(
+        'create_sell_order',
+        [
+          Number(fiatAmount),
+          fiatCurrency,
+          bankName,
+          bankAccount,
+          accountHolder,
+          refCode,
+        ],
+        cryptoWei,
+        `Locking ${cryptoAmount} GEN in Smart Contract Escrow...`
+      );
+
+      if (res) {
+        fetchSellerData();
+        // Generate new random memo for next order
+        setRefCode(`TLENG-${Math.random().toString(36).substring(2, 7).toUpperCase()}`);
+      }
+    } catch (err) {
+      console.error('Error creating sell order:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const toggleCexConnection = (id: string) => {
-    setCexList(prev =>
-      prev.map(c => (c.id === id ? { ...c, connected: !c.connected } : c))
-    );
+  // Handle On-Chain Cancel Order
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+      const res = await writeContract(
+        'cancel_sell_order',
+        [orderId],
+        undefined,
+        `Cancelling Order #${orderId} & Refunding Locked Crypto...`
+      );
+      if (res) {
+        fetchSellerData();
+      }
+    } catch (err) {
+      console.error('Error cancelling order:', err);
+    }
   };
 
-  const filteredCexOrders = activeFilter === 'ALL'
-    ? cexOrders
-    : cexOrders.filter(o => o.status === activeFilter);
-
-  const totalUsdtToday = cexOrders.reduce((sum, o) => sum + (o.status === 'COMPLETED_AUTO' ? o.cryptoAmount : 0), 0);
-  const totalVndToday = totalUsdtToday * 25400;
-  const autoCompletedCount = cexOrders.filter(o => o.status === 'COMPLETED_AUTO').length;
-  const needsReviewCount = cexOrders.filter(o => o.status === 'NEEDS_REVIEW').length;
+  const copyMemo = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedMemo(true);
+    setTimeout(() => setCopiedMemo(false), 2000);
+  };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Header Banner */}
+    <div className="space-y-8 max-w-6xl mx-auto">
+      {/* Seller Hub Header */}
       <div className="min-card p-8 space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-[#1F2026] pb-6">
           <div className="space-y-1 max-w-xl">
-            <h1 className="text-2xl font-bold text-white tracking-tight">
-              Merchant P2P Escrow Hub
+            <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+              <ArrowRightLeft className="w-5 h-5 text-[#F59E0B]" /> Seller Escrow Hub
             </h1>
             <p className="text-xs text-[#9CA3AF]">
-              Connect Binance, OKX, Bybit & MEXC P2P APIs. Automated real-time payment verification and instant crypto release.
+              Create on-chain P2P sell listings, lock crypto into GenLayer escrow, and track automatic payment settlement backed by 10% buyer deposit protection.
             </p>
           </div>
 
           <button
-            onClick={simulateIncomingCEXOrder}
-            disabled={isSimulatingOrder}
-            className="min-btn-primary px-5 py-2.5 text-xs flex items-center gap-2 shrink-0 disabled:opacity-50"
+            onClick={fetchSellerData}
+            disabled={isLoading}
+            className="min-btn-secondary px-4 py-2 text-xs flex items-center gap-2"
           >
-            {isSimulatingOrder ? (
-              <>
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Receiving Order...
-              </>
-            ) : (
-              <>
-                <Play className="w-3.5 h-3.5 fill-black" /> ⚡ Simulate 100 USDT Order
-              </>
-            )}
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} /> Refresh On-Chain Orders
           </button>
         </div>
 
-        {/* CEX Badges */}
-        <div className="space-y-2 pt-2 border-t border-[#1F2026] font-mono-data">
-          <div className="text-xs text-[#9CA3AF] flex items-center gap-2">
-            <Key className="w-3.5 h-3.5 text-[#F59E0B]" /> Exchange APIs:
+        {/* On-Chain Merchant Stats Metrics */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono-data">
+          <div className="min-card-inset p-4 flex items-center gap-3">
+            <DollarSign className="w-5 h-5 text-[#F59E0B] shrink-0" />
+            <div>
+              <div className="text-[10px] text-[#9CA3AF]">On-Chain Seller Orders</div>
+              <div className="text-lg font-bold text-white">{sellerOrders.length} Listings</div>
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {cexList.map(cex => (
-              <div
-                key={cex.id}
-                onClick={() => toggleCexConnection(cex.id)}
-                className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between text-xs ${
-                  cex.connected
-                    ? 'border-[#F59E0B] bg-[#141519] text-white'
-                    : 'border-[#1F2026] bg-[#050507] text-[#6B7280]'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span>{cex.logo}</span>
-                  <div>
-                    <div className="font-semibold text-white text-xs">{cex.name}</div>
-                    <div className="text-[10px] text-[#9CA3AF]">{cex.connected ? 'Active' : 'Offline'}</div>
-                  </div>
-                </div>
-                <span className={`w-2 h-2 rounded-full ${cex.connected ? 'bg-[#10B981]' : 'bg-[#6B7280]'}`}></span>
-              </div>
-            ))}
+
+          <div className="min-card-inset p-4 flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-[#10B981] shrink-0" />
+            <div>
+              <div className="text-[10px] text-[#9CA3AF]">Successful Escrow Releases</div>
+              <div className="text-lg font-bold text-[#10B981]">{merchantProfile.successful_releases} Trades</div>
+            </div>
+          </div>
+
+          <div className="min-card-inset p-4 flex items-center gap-3">
+            <ShieldCheck className="w-5 h-5 text-[#F59E0B] shrink-0" />
+            <div>
+              <div className="text-[10px] text-[#9CA3AF]">Reputation Score</div>
+              <div className="text-lg font-bold text-white">{merchantProfile.reputation_score} / 100</div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="min-card p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-[#141519] border border-[#1F2026] text-[#F59E0B] flex items-center justify-center shrink-0">
-            <DollarSign className="w-5 h-5" />
+      {/* Main Grid: Create Order Form & Seller Active Listings */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Create Sell Order Form */}
+        <div className="min-card p-6 space-y-5 lg:col-span-1">
+          <div className="border-b border-[#1F2026] pb-3">
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <PlusCircle className="w-4 h-4 text-[#F59E0B]" /> Create On-Chain Escrow Order
+            </h2>
+            <p className="text-[11px] text-[#9CA3AF]">Lock GEN into GenLayer Intelligent Contract</p>
           </div>
-          <div>
-            <div className="text-xs text-[#9CA3AF]">Sales Volume Today</div>
-            <div className="text-xl font-bold text-white font-mono-data">${totalUsdtToday.toLocaleString()} USDT</div>
-            <div className="text-[10px] text-[#10B981] font-mono-data">≈ {totalVndToday.toLocaleString()} VND</div>
-          </div>
-        </div>
 
-        <div className="min-card p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-[#141519] border border-[#1F2026] text-[#10B981] flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xs text-[#9CA3AF]">Auto-Released Trades</div>
-            <div className="text-xl font-bold text-[#10B981] font-mono-data">{autoCompletedCount} Orders</div>
-            <div className="text-[10px] text-[#9CA3AF] font-mono-data">100% Automated</div>
-          </div>
-        </div>
+          <form onSubmit={handleCreateSellOrder} className="space-y-4 text-xs">
+            <div>
+              <label className="block text-[#9CA3AF] mb-1">Crypto Amount to Escrow ($GEN)</label>
+              <input
+                type="number"
+                value={cryptoAmount}
+                onChange={e => setCryptoAmount(e.target.value)}
+                placeholder="100"
+                min="1"
+                className="w-full bg-[#141519] border border-[#1F2026] rounded-lg px-3 py-2 text-white font-mono-data focus:outline-none focus:border-[#F59E0B]"
+                required
+              />
+            </div>
 
-        <div className="min-card p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-[#141519] border border-[#1F2026] text-amber-400 flex items-center justify-center shrink-0">
-            <AlertTriangle className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xs text-[#9CA3AF]">Manual Review Flagged</div>
-            <div className="text-xl font-bold text-amber-400 font-mono-data">{needsReviewCount} Order</div>
-            <div className="text-[10px] text-[#9CA3AF] font-mono-data">Mismatched Slip</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stream */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <Zap className="w-4 h-4 text-[#F59E0B]" /> Real-Time P2P Stream
-          </h2>
-
-          <div className="flex items-center gap-1 bg-[#0E0F12] p-1 rounded-lg border border-[#1F2026] font-mono-data text-xs">
-            <button
-              onClick={() => setActiveFilter('ALL')}
-              className={`px-3 py-1 rounded-md transition-all ${activeFilter === 'ALL' ? 'bg-[#1F2026] text-white font-semibold' : 'text-[#9CA3AF]'}`}
-            >
-              All ({cexOrders.length})
-            </button>
-            <button
-              onClick={() => setActiveFilter('COMPLETED_AUTO')}
-              className={`px-3 py-1 rounded-md transition-all ${activeFilter === 'COMPLETED_AUTO' ? 'bg-[#10B981] text-black font-semibold' : 'text-[#9CA3AF]'}`}
-            >
-              Auto-Released ({autoCompletedCount})
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-3 font-mono-data">
-          {filteredCexOrders.map(ord => (
-            <div key={ord.id} className="min-card p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-3">
-                  <span className="min-badge-amber px-2 py-0.5 rounded text-xs font-semibold">{ord.exchange}</span>
-                  <span className="text-sm font-bold text-white">{ord.id}</span>
-                  <span className="text-xs text-[#10B981] font-bold">{ord.cryptoAmount} USDT</span>
-                  <span className="text-xs text-[#9CA3AF]">• {ord.fiatAmount.toLocaleString()} {ord.currency}</span>
-                </div>
-
-                <div className="text-xs text-[#9CA3AF]">
-                  Buyer: <span className="text-white">{ord.buyerName}</span> • Bank: <span className="text-white">{ord.bankName}</span> • Memo: <span className="text-[#F59E0B]">{ord.refCode}</span>
-                </div>
-
-                <div className="text-[11px] text-[#9CA3AF] min-card-inset p-2 flex items-center gap-2">
-                  <FileCheck className="w-3.5 h-3.5 text-[#F59E0B] shrink-0" />
-                  <span>{ord.aiReason}</span>
-                </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[#9CA3AF] mb-1">Required Fiat</label>
+                <input
+                  type="number"
+                  value={fiatAmount}
+                  onChange={e => setFiatAmount(e.target.value)}
+                  placeholder="2540000"
+                  className="w-full bg-[#141519] border border-[#1F2026] rounded-lg px-3 py-2 text-white font-mono-data focus:outline-none focus:border-[#F59E0B]"
+                  required
+                />
               </div>
-
-              <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0">
-                <span className={`px-3 py-1 rounded text-xs font-semibold ${ord.status === 'COMPLETED_AUTO' ? 'min-badge-emerald' : 'min-badge-amber'}`}>
-                  {ord.status === 'COMPLETED_AUTO' ? '✓ Released' : '⚠️ Review'}
-                </span>
+              <div>
+                <label className="block text-[#9CA3AF] mb-1">Currency</label>
+                <select
+                  value={fiatCurrency}
+                  onChange={e => setFiatCurrency(e.target.value)}
+                  className="w-full bg-[#141519] border border-[#1F2026] rounded-lg px-3 py-2 text-white font-mono-data focus:outline-none"
+                >
+                  <option value="VND">VND</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="NGN">NGN</option>
+                </select>
               </div>
             </div>
-          ))}
+
+            <div>
+              <label className="block text-[#9CA3AF] mb-1">Bank Name</label>
+              <input
+                type="text"
+                value={bankName}
+                onChange={e => setBankName(e.target.value)}
+                placeholder="Vietcombank"
+                className="w-full bg-[#141519] border border-[#1F2026] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#F59E0B]"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[#9CA3AF] mb-1">Account Number</label>
+                <input
+                  type="text"
+                  value={bankAccount}
+                  onChange={e => setBankAccount(e.target.value)}
+                  placeholder="9988776655"
+                  className="w-full bg-[#141519] border border-[#1F2026] rounded-lg px-3 py-2 text-white font-mono-data focus:outline-none focus:border-[#F59E0B]"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-[#9CA3AF] mb-1">Account Owner Name</label>
+                <input
+                  type="text"
+                  value={accountHolder}
+                  onChange={e => setAccountHolder(e.target.value)}
+                  placeholder="TRIN THI NGAN"
+                  className="w-full bg-[#141519] border border-[#1F2026] rounded-lg px-3 py-2 text-white uppercase focus:outline-none focus:border-[#F59E0B]"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-[#9CA3AF]">Required Transfer Memo Code</label>
+                <button
+                  type="button"
+                  onClick={() => copyMemo(refCode)}
+                  className="text-[10px] text-[#F59E0B] hover:underline flex items-center gap-1 font-mono-data"
+                >
+                  <Copy className="w-3 h-3" /> {copiedMemo ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+              <input
+                type="text"
+                value={refCode}
+                onChange={e => setRefCode(e.target.value.toUpperCase())}
+                className="w-full bg-[#141519] border border-[#1F2026] rounded-lg px-3 py-2 text-[#F59E0B] font-mono-data font-bold tracking-wider focus:outline-none"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="min-btn-primary w-full py-2.5 text-xs font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Locking Escrow...
+                </>
+              ) : (
+                <>
+                  <PlusCircle className="w-3.5 h-3.5" /> Lock Crypto & Publish Sell Order
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* My On-Chain Seller Orders */}
+        <div className="min-card p-6 space-y-4 lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-[#1F2026] pb-3">
+            <h2 className="text-base font-bold text-white">My Active On-Chain Orders</h2>
+            <span className="text-xs font-mono-data text-[#9CA3AF]">Total: {sellerOrders.length}</span>
+          </div>
+
+          {sellerOrders.length === 0 ? (
+            <div className="min-card-inset p-8 text-center space-y-2">
+              <div className="text-xs font-semibold text-white">No Active On-Chain Orders</div>
+              <p className="text-[11px] text-[#9CA3AF]">
+                Fill out the form on the left to lock GEN into Smart Contract escrow and publish your first P2P sell order on GenLayer studionet!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3 font-mono-data">
+              {sellerOrders.map(order => (
+                <div key={order.order_id} className="min-card-inset p-4 space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white">Order #{order.order_id}</span>
+                      <span className="text-[#10B981] font-bold">{order.crypto_amount} GEN</span>
+                      <span className="text-[#9CA3AF]">• {order.fiat_amount.toLocaleString()} {order.fiat_currency}</span>
+                    </div>
+
+                    <span className={`px-2.5 py-0.5 rounded text-[10px] uppercase font-bold ${
+                      order.status === 'LISTED'
+                        ? 'min-badge-amber'
+                        : order.status === 'COMPLETED'
+                        ? 'min-badge-emerald'
+                        : order.status === 'DISPUTED_FRAUD'
+                        ? 'min-badge-red'
+                        : 'bg-[#1F2026] text-[#E5E7EB]'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </div>
+
+                  <div className="text-[11px] text-[#9CA3AF] grid grid-cols-2 gap-2">
+                    <div>Bank: <span className="text-white font-medium">{order.bank_name} ({order.bank_account})</span></div>
+                    <div>Memo: <span className="text-[#F59E0B] font-bold">{order.ref_code}</span></div>
+                    <div>Account Holder: <span className="text-white">{order.account_holder}</span></div>
+                    <div>Buyer: <span className="text-white">{order.buyer ? `${order.buyer.substring(0, 6)}...${order.buyer.substring(order.buyer.length - 4)}` : 'None'}</span></div>
+                  </div>
+
+                  {order.ai_reason && (
+                    <div className="text-[11px] text-[#9CA3AF] bg-[#050507] p-2 rounded border border-[#1F2026]">
+                      Consensus Note: {order.ai_reason}
+                    </div>
+                  )}
+
+                  {order.status === 'LISTED' && (
+                    <div className="pt-1 flex justify-end">
+                      <button
+                        onClick={() => handleCancelOrder(order.order_id)}
+                        className="text-[11px] text-[#EF4444] hover:underline flex items-center gap-1"
+                      >
+                        <XCircle className="w-3.5 h-3.5" /> Cancel Order & Refund GEN
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

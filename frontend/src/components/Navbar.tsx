@@ -45,7 +45,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Clean Tabs */}
-      <nav className="flex items-[#0E0F12] p-1 rounded-lg border border-[#1F2026]">
+      <nav className="flex items-center gap-1 bg-[#0E0F12] p-1 rounded-lg border border-[#1F2026]">
         <button
           onClick={() => setActiveTab('market')}
           className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-xs font-medium transition-all ${
@@ -67,14 +67,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           }`}
         >
           <ArrowRightLeft className="w-3.5 h-3.5" />
-          Merchant Hub
+          Seller Hub
         </button>
 
         <button
           onClick={() => setActiveTab('dispute')}
           className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-xs font-medium transition-all ${
             activeTab === 'dispute'
-              ? 'bg-[#1F2026] text-white font-semibold'
+              ? 'bg-[#1F2026] text-[#E5E7EB] font-semibold'
               : 'text-[#9CA3AF] hover:text-white'
           }`}
         >
